@@ -1,6 +1,6 @@
 // @GENERATOR:play-routes-compiler
-// @SOURCE:/Users/maxmelhuish/Documents/Scala_projects/SpotifyApiProject/PlayFrameworkSpotifyApi/play-samples-play-scala-hello-world-tutorial/conf/routes
-// @DATE:Sat Feb 13 16:28:08 GMT 2021
+// @SOURCE:/Users/maxmelhuish/repos/SpotifyApiProject/PlayFrameworkSpotifyApi/play-samples-play-scala-hello-world-tutorial/conf/routes
+// @DATE:Thu Sep 07 00:17:42 BST 2023
 
 import play.api.routing.JavaScriptReverseRoute
 
@@ -70,7 +70,37 @@ package controllers.javascript {
   
   }
 
-  // @LINE:14
+  // @LINE:12
+  class ReverseWSController(_prefix: => String) {
+
+    def _defaultPrefix: String = {
+      if (_prefix.endsWith("/")) "" else "/"
+    }
+
+  
+    // @LINE:13
+    def findArtist: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.WSController.findArtist",
+      """
+        function(query0) {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "search" + _qS([(""" + implicitly[play.api.mvc.QueryStringBindable[String]].javascriptUnbind + """)("query", query0)])})
+        }
+      """
+    )
+  
+    // @LINE:12
+    def getArtist: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.WSController.getArtist",
+      """
+        function(artistId0) {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "artist" + _qS([(""" + implicitly[play.api.mvc.QueryStringBindable[String]].javascriptUnbind + """)("artistId", artistId0)])})
+        }
+      """
+    )
+  
+  }
+
+  // @LINE:16
   class ReverseAssets(_prefix: => String) {
 
     def _defaultPrefix: String = {
@@ -78,7 +108,7 @@ package controllers.javascript {
     }
 
   
-    // @LINE:14
+    // @LINE:16
     def versioned: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "controllers.Assets.versioned",
       """

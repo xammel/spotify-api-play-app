@@ -1,0 +1,17 @@
+@(futureResponse: String)
+@main("Hello") {
+<section id="content">
+    <div class="wrapper doc">
+        <article>
+            <h1>Hello</h1>
+            <p>@futureResponse</p>
+            <p>
+                <button onclick="location.href = '/';"> Now let's get out of this shit page shall we and go back home</button>
+            </p>
+        </article>
+        <aside>
+            @commonSidebar()
+        </aside>
+    </div>
+</section>
+}

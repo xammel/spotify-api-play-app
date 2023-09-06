@@ -57,8 +57,8 @@ Seq[Any](format.raw/*1.4*/("""
 
               /*
                   -- GENERATED --
-                  DATE: 2021-02-13T16:27:18.209062
-                  SOURCE: /Users/maxmelhuish/Documents/Scala_projects/SpotifyApiProject/PlayFrameworkSpotifyApi/play-samples-play-scala-hello-world-tutorial/app/views/commonSidebar.scala.html
+                  DATE: 2023-09-06T22:09:45.652666
+                  SOURCE: /Users/maxmelhuish/repos/SpotifyApiProject/PlayFrameworkSpotifyApi/play-samples-play-scala-hello-world-tutorial/app/views/commonSidebar.scala.html
                   HASH: 8bdc6d33533ed909d1a8fb62be5a412ac301cc90
                   MATRIX: 730->1|826->3|854->6|901->45|951->58|979->60|1055->110|1069->116|1112->139|1182->183|1196->189|1241->214|1316->263|1330->269|1376->295|1450->343|1464->349|1516->381|1583->422|1597->428|1641->452|1785->569|1813->576
                   LINES: 21->1|26->1|27->2|27->2|27->2|28->3|30->5|30->5|30->5|31->6|31->6|31->6|32->7|32->7|32->7|33->8|33->8|33->8|34->9|34->9|34->9|38->13|38->13
