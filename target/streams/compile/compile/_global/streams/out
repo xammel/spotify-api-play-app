@@ -1,6 +1,0 @@
-[0m[[0m[31merror[0m] [0m[0m/Users/maxmelhuish/Documents/Scala_projects/SpotifyApiProject/PlayFrameworkSpotifyApi/play-samples-play-scala-hello-world-tutorial/conf/routes:11:1: value d3 is not a member of controllers.HomeController[0m
-[0m[[0m[31merror[0m] [0m[0mGET     /d3                                 controllers.HomeController.d3()[0m
-[0m[[0m[31merror[0m] [0m[0m/Users/maxmelhuish/Documents/Scala_projects/SpotifyApiProject/PlayFrameworkSpotifyApi/play-samples-play-scala-hello-world-tutorial/app/views/commonSidebar.scala.html:9:39: value d3Test is not a member of controllers.ReverseHomeController[0m
-[0m[[0m[31merror[0m] [0m[0m  <li><a href='@routes.HomeController.d3Test()'>D3 Test Page</a>[0m
-[0m[[0m[31merror[0m] [0m[0m                                      ^[0m
-[0m[[0m[31merror[0m] [0m[0mtwo errors found[0m
