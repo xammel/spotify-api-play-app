@@ -1,3 +1,0 @@
-[0m[[0m[31merror[0m] [0m[0m/Users/maxmelhuish/repos/SpotifyApiProject/PlayFrameworkSpotifyApi/play-samples-play-scala-hello-world-tutorial/conf/routes:12:1: value apiCall is not a member of controllers.WSController[0m
-[0m[[0m[31merror[0m] [0m[0mGET     /api                                controllers.WSController.apiCall(artist)[0m
-[0m[[0m[31merror[0m] [0m[0mone error found[0m
