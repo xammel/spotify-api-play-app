@@ -1,9 +1,0 @@
-dist/*
-target/
-lib_managed/
-src_managed/
-project/**
-.history
-.cache
-.lib/
-.idea/**

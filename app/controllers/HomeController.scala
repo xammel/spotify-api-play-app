@@ -34,10 +34,6 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
     Ok(views.html.hello(name))
   }
 
-//  def controllerTest(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-//    contollers.
-//  }
-
   def d3Test(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.d3())
   }
