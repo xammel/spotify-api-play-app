@@ -12,7 +12,8 @@ lazy val root = (project in file("."))
       guice,
       "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test,
       ws,
-      ehcache
+      ehcache,
+      cacheApi
     ) ++ Seq(
       "io.circe" %% "circe-core",
       "io.circe" %% "circe-generic",

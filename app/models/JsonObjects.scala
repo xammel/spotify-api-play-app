@@ -8,3 +8,5 @@ case class AccessToken(access_token: String)
 object AccessToken {
   implicit val accessTokenDecoder: Decoder[AccessToken] = deriveDecoder[AccessToken]
 }
+
+case class ArtistId(artistId: String)

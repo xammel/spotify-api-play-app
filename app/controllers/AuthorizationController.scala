@@ -4,22 +4,32 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.Base64
 
-import io.circe._
+import akka.Done
 import io.circe.parser._
 import javax.inject.Inject
 import models.AccessToken
 import play.api.libs.ws._
 import play.api.mvc._
+import utils.Functions.joinURLParameters
 import utils.StringConstants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.util.Random
+import play.api.libs.json._
+import play.api.cache._
+import play.api.Play._
+import play.cache.Cached
+import play.api.cache._
+import play.api.mvc._
+import javax.inject.Inject
+import utils.StringConstants.tokenKey
 
-class Controller @Inject()(ws: WSClient,
-                           val controllerComponents: ControllerComponents)
-    extends BaseController {
+class AuthorizationController @Inject()(
+  ws: WSClient,
+  val controllerComponents: ControllerComponents
+) extends BaseController {
 
   def generateRandomString: String = {
     Random.alphanumeric.take(lengthOfCodeVerifier).mkString("")
@@ -38,9 +48,6 @@ class Controller @Inject()(ws: WSClient,
       encoder.digest(codeVerifier.getBytes(StandardCharsets.UTF_8))
     base64Encode(data)
   }
-
-  def joinURLParameters(params: Map[String, String]): String =
-    params.map { case (k, v) => s"$k=$v" }.mkString("&")
 
   //TODO look into if generating these on initiation of the class is an issue
   lazy val codeVerifier = generateRandomString
@@ -81,9 +88,9 @@ class Controller @Inject()(ws: WSClient,
       decodedAccessToken match {
         case Left(failure) => InternalServerError(failure.getMessage)
         case Right(accessToken) => {
-          Ok(views.html.showArtist(accessToken.access_token))
+          Redirect(routes.HomeController.home())
+            .withSession(tokenKey -> accessToken.access_token)
         }
       }
-
   }
 }

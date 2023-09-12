@@ -1,0 +1,26 @@
+@(artistIdForm: Form[ArtistId])(implicit messages: Messages)
+
+@main("Welcome") {
+@defining(play.core.PlayVersion.current) { version =>
+
+<section id="content">
+  <div class="wrapper doc">
+    <article>
+      <p>
+        <button onclick="location.href = '/artist';">Artist</button>
+      </p>
+      <p>
+        @helper.form(action = routes.WSController.getArtist("")) {
+        @helper.inputText(artistIdForm("artistId"))
+        <input type="submit" value="Search this artist">
+        }
+      </p>
+      <p>
+    </article>
+    <aside>
+      @commonSidebar()
+    </aside>
+  </div>
+</section>
+}
+}
