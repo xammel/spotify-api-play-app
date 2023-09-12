@@ -1,86 +1,86 @@
 package controllers
 
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import java.util.Base64
+
 import javax.inject.Inject
 import play.api.libs.ws._
 import play.api.mvc._
 import utils.StringConstants.{
-  currentToken,
-  getArtistEndpoint,
-  searchApi,
-  authorizeEndpoint
+  clientId,
+  authorizeEndpoint,
+  lengthOfCodeVerifier,
+  sha256,
+  apiTokenEndpoint,
+  authorizationCallback
 }
-import scala.concurrent.duration.{Duration, _}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.Duration
 import scala.util.Random
-import java.math.BigInteger
-import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
-import java.util.Base64
-import java.nio.charset.StandardCharsets.UTF_8
-import play.mvc.Results.redirect
-import utils.StringConstants.CLIENT_ID
-import play.api.http.{ContentTypeOf, ContentTypes, Writeable}
-import play.api.libs.ws.JsonBodyReadables._
-import play.api.libs.ws.JsonBodyWritables._
 
 class Controller @Inject()(ws: WSClient,
                            val controllerComponents: ControllerComponents)
     extends BaseController {
 
-  def generateRandomString: String = Random.alphanumeric.take(128).mkString("")
-
-  def sha256Hash(text: String): String = {
-    val digestInstance = MessageDigest.getInstance("SHA-256")
-    val bigInt = new BigInteger(1, digestInstance.digest(text.getBytes(UTF_8)))
-    String.format("%064x", bigInt)
+  def generateRandomString: String = {
+    Random.alphanumeric.take(lengthOfCodeVerifier).mkString("")
   }
 
-  def base64URLEncode(text: String): String =
-    Base64.getEncoder
-      .encodeToString(text.getBytes(UTF_8))
+  def base64Encode(bytes: Array[Byte]): String = {
+    Base64.getUrlEncoder.withoutPadding
+      .encodeToString(bytes)
       .replace('+', '-')
       .replace('/', '_')
-      .takeWhile(_ != '=')
+  }
 
-  def joinURLParameters(params: Seq[(String, String)]): String =
-    params.map(tup => s"${tup._1}=${tup._2}").mkString("&")
+  def generateCodeChallenge(codeVerifier: String): Future[String] = Future {
+    val encoder: MessageDigest = MessageDigest.getInstance(sha256)
+    val data: Array[Byte] =
+      encoder.digest(codeVerifier.getBytes(StandardCharsets.UTF_8))
+    base64Encode(data)
+  }
+
+  def joinURLParameters(params: Map[String, String]): String =
+    params.map { case (k, v) => s"$k=$v" }.mkString("&")
 
   //TODO look into if generating these on initiation of the class is an issue
-  lazy val randomString = generateRandomString
-  lazy val hashedString = sha256Hash(randomString)
-  lazy val baseEncoded = base64URLEncode(hashedString)
+//  lazy val randomString = generateRandomString
+//  lazy val hashedString = sha256Hash(randomString)
+//  lazy val baseEncoded = base64URLEncode(hashedString)
+  lazy val codeVerifier = generateRandomString
 
   def authorize(): Action[AnyContent] = Action {
     implicit request: Request[AnyContent] =>
-      println(randomString)
-      println(hashedString)
-      println(baseEncoded)
-      val params = Seq(
-        ("response_type", "code"),
-        ("client_id", CLIENT_ID),
-        ("redirect_uri", "http://localhost:9000/callback"),
-        ("code_challenge_method", "S256"),
-        ("code_challenge", baseEncoded)
+      val codeChallenge: String =
+        Await.result(generateCodeChallenge(codeVerifier), Duration.Inf)
+      println(codeVerifier)
+      println(codeChallenge)
+      val params = Map(
+        "response_type" -> "code",
+        "client_id" -> clientId,
+        "redirect_uri" -> authorizationCallback,
+        "code_challenge_method" -> "S256",
+        "code_challenge" -> codeChallenge
       )
       val joinedParams = joinURLParameters(params)
       val url = s"$authorizeEndpoint$joinedParams"
       Results.Redirect(url)
-//    ws.url(url).get()
   }
 
   def callback(code: String): Action[AnyContent] = Action {
     implicit request: Request[AnyContent] =>
-      println(randomString)
-      val params = Seq(
-        ("grant_type", "authorization_code"),
-        ("code", code),
-        ("redirect_uri", "http://localhost:9000/callback"),
-        ("client_id", CLIENT_ID),
-        ("code_verifier", randomString)
+      val params = Map(
+        "grant_type" -> "authorization_code",
+        "code" -> code,
+        "redirect_uri" -> authorizationCallback,
+        "client_id" -> clientId,
+        "code_verifier" -> codeVerifier
       )
-      val url = "https://accounts.spotify.com/api/token"
       val hitURL: Future[WSResponse] = ws
-        .url(url)
+        .url(apiTokenEndpoint)
         .addHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded")
         .post(joinURLParameters(params))
 

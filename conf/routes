@@ -12,7 +12,7 @@ GET     /d3                                 controllers.HomeController.d3Test()
 GET     /artist                             controllers.WSController.getArtist(artistId)
 GET     /search                             controllers.WSController.findArtist(query)
 GET     /authorize                          controllers.Controller.authorize()
-GET     /callback                           controllers.Controller.callback(code)
+GET     /authorization-callback             controllers.Controller.callback(code)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
