@@ -4,21 +4,17 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.Base64
 
+import io.circe._
+import io.circe.parser._
 import javax.inject.Inject
+import models.AccessToken
 import play.api.libs.ws._
 import play.api.mvc._
-import utils.StringConstants.{
-  clientId,
-  authorizeEndpoint,
-  lengthOfCodeVerifier,
-  sha256,
-  apiTokenEndpoint,
-  authorizationCallback
-}
+import utils.StringConstants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 import scala.util.Random
 
 class Controller @Inject()(ws: WSClient,
@@ -47,17 +43,12 @@ class Controller @Inject()(ws: WSClient,
     params.map { case (k, v) => s"$k=$v" }.mkString("&")
 
   //TODO look into if generating these on initiation of the class is an issue
-//  lazy val randomString = generateRandomString
-//  lazy val hashedString = sha256Hash(randomString)
-//  lazy val baseEncoded = base64URLEncode(hashedString)
   lazy val codeVerifier = generateRandomString
 
   def authorize(): Action[AnyContent] = Action {
     implicit request: Request[AnyContent] =>
       val codeChallenge: String =
         Await.result(generateCodeChallenge(codeVerifier), Duration.Inf)
-      println(codeVerifier)
-      println(codeChallenge)
       val params = Map(
         "response_type" -> "code",
         "client_id" -> clientId,
@@ -79,12 +70,20 @@ class Controller @Inject()(ws: WSClient,
         "client_id" -> clientId,
         "code_verifier" -> codeVerifier
       )
+
       val hitURL: Future[WSResponse] = ws
         .url(apiTokenEndpoint)
         .addHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded")
         .post(joinURLParameters(params))
 
       val res = Await.result(hitURL, Duration.Inf)
-      Ok(views.html.showArtist(res.body))
+      val decodedAccessToken = decode[AccessToken](res.body)
+      decodedAccessToken match {
+        case Left(failure) => InternalServerError(failure.getMessage)
+        case Right(accessToken) => {
+          Ok(views.html.showArtist(accessToken.access_token))
+        }
+      }
+
   }
 }
