@@ -70,8 +70,14 @@ object ErrorDetails {
 //  "type": "artist",
 //  "uri": "spotify:artist:6fxk3UXHTFYET8qCT9WlBF"
 //}
-case class ArtistDetails(name: String)
+case class ArtistDetails(name: String, popularity: Int)
 
 object ArtistDetails {
   implicit val artistDetailsDecoder: Decoder[ArtistDetails] = deriveDecoder[ArtistDetails]
+}
+
+case class ArtistList(items: Seq[ArtistDetails])
+
+object ArtistList {
+  implicit val artistListDecoder: Decoder[ArtistList] = deriveDecoder[ArtistList]
 }

@@ -2,7 +2,6 @@ package utils
 
 import play.api.mvc.RequestHeader
 import utils.StringConstants.tokenKey
-import java.lang.Exception
 
 object Functions {
 

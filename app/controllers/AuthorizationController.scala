@@ -18,8 +18,8 @@ import scala.concurrent.{Await, Future}
 import scala.util.Random
 
 class AuthorizationController @Inject()(
-  ws: WSClient,
-  val controllerComponents: ControllerComponents
+    ws: WSClient,
+    val controllerComponents: ControllerComponents
 ) extends BaseController {
 
   def generateRandomString: String = {
@@ -43,45 +43,44 @@ class AuthorizationController @Inject()(
   //TODO look into if generating these on initiation of the class is an issue
   lazy val codeVerifier = generateRandomString
 
-  def authorize(): Action[AnyContent] = Action {
-    implicit request: Request[AnyContent] =>
-      val codeChallenge: String =
-        Await.result(generateCodeChallenge(codeVerifier), Duration.Inf)
-      val params = Map(
-        "response_type" -> "code",
-        "client_id" -> clientId,
-        "redirect_uri" -> authorizationCallback,
-        "code_challenge_method" -> "S256",
-        "code_challenge" -> codeChallenge
-      )
-      val joinedParams = joinURLParameters(params)
-      val url = s"$authorizeEndpoint$joinedParams"
-      Results.Redirect(url)
+  def authorize(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    val codeChallenge: String =
+      Await.result(generateCodeChallenge(codeVerifier), Duration.Inf)
+    val params = Map(
+      "response_type" -> "code",
+      "client_id" -> clientId,
+      "scope" -> "user-read-private user-read-email user-top-read",
+      "redirect_uri" -> authorizationCallback,
+      "code_challenge_method" -> "S256",
+      "code_challenge" -> codeChallenge
+    )
+    val joinedParams = joinURLParameters(params)
+    val url = s"$authorizeEndpoint$joinedParams"
+    Results.Redirect(url)
   }
 
-  def callback(code: String): Action[AnyContent] = Action {
-    implicit request: Request[AnyContent] =>
-      val params = Map(
-        "grant_type" -> "authorization_code",
-        "code" -> code,
-        "redirect_uri" -> authorizationCallback,
-        "client_id" -> clientId,
-        "code_verifier" -> codeVerifier
-      )
+  def callback(code: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    val params = Map(
+      "grant_type" -> "authorization_code",
+      "code" -> code,
+      "redirect_uri" -> authorizationCallback,
+      "client_id" -> clientId,
+      "code_verifier" -> codeVerifier
+    )
 
-      val hitURL: Future[WSResponse] = ws
-        .url(apiTokenEndpoint)
-        .addHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded")
-        .post(joinURLParameters(params))
+    val hitURL: Future[WSResponse] = ws
+      .url(apiTokenEndpoint)
+      .addHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded")
+      .post(joinURLParameters(params))
 
-      val res = Await.result(hitURL, Duration.Inf)
-      val decodedAccessToken = decode[AccessToken](res.body)
-      decodedAccessToken match {
-        case Left(failure) => InternalServerError(failure.getMessage)
-        case Right(accessToken) => {
-          Redirect(routes.HomeController.home())
-            .withSession(tokenKey -> accessToken.access_token)
-        }
+    val res = Await.result(hitURL, Duration.Inf)
+    val decodedAccessToken = decode[AccessToken](res.body)
+    decodedAccessToken match {
+      case Left(failure) => InternalServerError(failure.getMessage)
+      case Right(accessToken) => {
+        Redirect(routes.HomeController.home())
+          .withSession(tokenKey -> accessToken.access_token)
       }
+    }
   }
 }
