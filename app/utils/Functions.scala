@@ -6,7 +6,8 @@ import java.lang.Exception
 
 object Functions {
 
-  def getAccessToken(request: RequestHeader): String =
+  def getAccessToken(request: RequestHeader): Option[String] = request.session.get(tokenKey)
+  def getAccessTokenUnsafe(request: RequestHeader): String =
     request.session.get(tokenKey) match {
       case Some(v) => v
       case None =>
@@ -14,7 +15,6 @@ object Functions {
           s"No value found in session state for key $tokenKey"
         )
     }
-
   def joinURLParameters(params: Map[String, String]): String =
     params.map { case (k, v) => s"$k=$v" }.mkString("&")
 

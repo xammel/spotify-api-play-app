@@ -8,7 +8,7 @@ import utils.StringConstants.{getArtistEndpoint, searchApi}
 
 import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{Await, Future}
-import utils.Functions.getAccessToken
+import utils.Functions.getAccessTokenUnsafe
 import io.circe.parser._
 import models.{Error, ArtistDetails, ErrorDetails}
 
@@ -16,7 +16,7 @@ class WSController @Inject()(ws: WSClient,
                              val controllerComponents: ControllerComponents)
     extends BaseController {
 
-  def hitApi(url: String, token: String) =
+  def hitApi(url: String, token: String): WSRequest =
     ws.url(url)
       .addHttpHeaders("Authorization" -> s"Bearer $token")
       .withRequestTimeout(10000.millis)
@@ -28,7 +28,7 @@ class WSController @Inject()(ws: WSClient,
           s"${searchApi("Miles Davis&type=artist")}" //"remaster%2520track%3ADoxy%2520artist%3AMies%2520Davis&type=album")}"
         def searchRequest(query: String) =
           hitApi(searchURL(""), accessToken) //todo remove hardcoding
-        def searchResponse(query: String) = searchRequest("").get()
+        def searchResponse(query: String): Future[WSResponse] = searchRequest("").get()
 
         println(searchURL(""))
 
@@ -42,7 +42,7 @@ class WSController @Inject()(ws: WSClient,
     implicit request: Request[AnyContent] =>
       {
 
-        val accessToken: String = getAccessToken(request)
+        val accessToken: String = getAccessTokenUnsafe(request)
 
         def getArtistURL(artistId: String) = s"$getArtistEndpoint/$artistId"
         def artistRequest(artistId: String): WSRequest =
@@ -59,10 +59,10 @@ class WSController @Inject()(ws: WSClient,
           decode[ArtistDetails](response.body)
 
         (error, artistDetails) match {
-          case (Left(e), Right(v)) => Ok(views.html.showArtist(v.name))
-          case (Right(Error(ErrorDetails(401, _))), Left(e)) =>
+          case (Left(_), Right(v)) => Ok(views.html.showArtist(v.name))
+          case (Right(Error(ErrorDetails(401, _))), Left(_)) =>
             Redirect(routes.AuthorizationController.authorize())
-          case (Right(v), Left(e)) =>
+          case (Right(v), Left(_)) =>
             Ok(
               views.html.showArtist(
                 s"Error! Error code: ${v.error.status} Error Message: ${v.error.message}"

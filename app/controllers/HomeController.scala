@@ -24,8 +24,11 @@ class HomeController @Inject()(cc: ControllerComponents)
     * a path of `/`.
     */
   def index() = Action { implicit request: Request[AnyContent] =>
-
-    Ok(views.html.index())
+  val accessTokenOpt = getAccessToken(request)
+    accessTokenOpt match {
+      case Some(_) => Redirect(routes.HomeController.home())
+      case None => Redirect(routes.AuthorizationController.authorize())
+    }
   }
 
   val artistIdForm = Form(
