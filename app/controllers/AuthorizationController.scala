@@ -4,27 +4,18 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.Base64
 
-import akka.Done
 import io.circe.parser._
 import javax.inject.Inject
 import models.AccessToken
 import play.api.libs.ws._
 import play.api.mvc._
 import utils.Functions.joinURLParameters
-import utils.StringConstants._
+import utils.StringConstants.{tokenKey, _}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.util.Random
-import play.api.libs.json._
-import play.api.cache._
-import play.api.Play._
-import play.cache.Cached
-import play.api.cache._
-import play.api.mvc._
-import javax.inject.Inject
-import utils.StringConstants.tokenKey
 
 class AuthorizationController @Inject()(
   ws: WSClient,
