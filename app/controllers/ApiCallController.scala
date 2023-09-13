@@ -12,8 +12,8 @@ import utils.Functions.getAccessTokenUnsafe
 import io.circe.parser._
 import models.{Error, ArtistDetails, ErrorDetails}
 
-class WSController @Inject()(ws: WSClient,
-                             val controllerComponents: ControllerComponents)
+class ApiCallController @Inject()(ws: WSClient,
+                                  val controllerComponents: ControllerComponents)
     extends BaseController {
 
   def hitApi(url: String, token: String): WSRequest =

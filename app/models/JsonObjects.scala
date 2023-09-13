@@ -2,6 +2,8 @@ package models
 
 import io.circe._
 import io.circe.generic.semiauto._
+import play.api.data.Form
+import play.api.data.Forms._
 
 case class AccessToken(access_token: String)
 
@@ -10,6 +12,12 @@ object AccessToken {
 }
 
 case class ArtistId(artistId: String)
+
+object ArtistId {
+  val artistIdForm = Form(
+    mapping("artistId" -> text)(ArtistId.apply)(ArtistId.unapply)
+  )
+}
 
 // { "error": { "status": 401, "message": "Invalid access token" } }
 case class Error(error: ErrorDetails)

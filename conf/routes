@@ -5,12 +5,8 @@
 
 # An example controller showing a sample home page
 GET     /                                   controllers.HomeController.index()
-GET     /explore                            controllers.HomeController.explore()
-GET     /tutorial                           controllers.HomeController.tutorial()
-GET     /hello                              controllers.HomeController.hello(name)
-GET     /d3                                 controllers.HomeController.d3Test()
-GET     /artist                             controllers.WSController.getArtist(artistId)
-GET     /search                             controllers.WSController.findArtist(accessToken, query)
+GET     /artist                             controllers.ApiCallController.getArtist(artistId)
+GET     /search                             controllers.ApiCallController.findArtist(accessToken, query)
 GET     /authorize                          controllers.AuthorizationController.authorize()
 GET     /authorization-callback             controllers.AuthorizationController.callback(code)
 GET     /home                               controllers.HomeController.home()
