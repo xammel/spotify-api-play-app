@@ -4,15 +4,16 @@ import io.circe
 import javax.inject.Inject
 import play.api.libs.ws._
 import play.api.mvc._
-import utils.StringConstants.{getArtistEndpoint, myTopArtistsEndpoint, searchApi}
+import utils.StringConstants.{getArtistEndpoint, myTopArtistsEndpoint, searchApi, myTopTracksEndpoint}
 
 import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{Await, Future}
-import utils.Functions.{getAccessToken, getAccessTokenUnsafe}
+import utils.Functions.{getAccessToken, getAccessTokenUnsafe, redirectToAuthorize}
 import io.circe.parser._
-import models.{ArtistDetails, ArtistList, Error, ErrorDetails}
+import io.circe._
+import models.{ArtistDetails, ArtistList, Error, ErrorDetails, TrackList}
 
-class ApiCallController @Inject()(
+class ApiCallController @Inject() (
     ws: WSClient,
     val controllerComponents: ControllerComponents
 ) extends BaseController {
@@ -21,6 +22,16 @@ class ApiCallController @Inject()(
     ws.url(url)
       .addHttpHeaders("Authorization" -> s"Bearer $token")
       .withRequestTimeout(10000.millis)
+
+  def processResponse[T: Manifest](responseBody: String)(dataToString: T => String)(implicit decoder: Decoder[T]) = {
+    val error: Either[circe.Error, Error] = decode[Error](responseBody)
+    val data: Either[circe.Error, T]      = decode[T](responseBody)
+    (error, data) match {
+      case (Right(Error(ErrorDetails(401, _))), _) => redirectToAuthorize
+      case (_, Right(data: T))                     => Ok(views.html.showArtist(dataToString(data)))
+      case _                                       => InternalServerError("Response couldn't be decoded as an error or artist details...")
+    }
+  }
 
   def findArtist(accessToken: String, artist: String): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
@@ -40,53 +51,42 @@ class ApiCallController @Inject()(
       }
     }
 
-  def getArtist(artistId: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    {
+  def getArtist(artistId: String): Action[AnyContent] =
+    Action { implicit request: Request[AnyContent] =>
+      {
 
-      val accessToken: String = getAccessTokenUnsafe(request)
+        val accessToken: String = getAccessTokenUnsafe(request)
 
-      def getArtistURL(artistId: String) = s"$getArtistEndpoint/$artistId"
-      def artistRequest(artistId: String): WSRequest =
-        hitApi(getArtistURL(artistId), accessToken)
-      def artistResponse(artistId: String): Future[WSResponse] =
-        artistRequest(artistId).get()
+        def getArtistURL(artistId: String) = s"$getArtistEndpoint/$artistId"
+        def artistRequest(artistId: String): WSRequest =
+          hitApi(getArtistURL(artistId), accessToken)
+        def artistResponse(artistId: String): Future[WSResponse] =
+          artistRequest(artistId).get()
 
-      //todo Make this nicer so we don't extract the value from the Future
-      val response: WSResponse =
-        Await.result(artistResponse(artistId), Duration.Inf)
+        //todo Make this nicer so we don't extract the value from the Future
+        val response: WSResponse = Await.result(artistResponse(artistId), Duration.Inf)
 
-      val error: Either[circe.Error, Error] = decode[Error](response.body)
-      val artistDetails: Either[circe.Error, ArtistDetails] = decode[ArtistDetails](response.body)
-
-      (error, artistDetails) match {
-        case (Left(_), Right(v))                           => Ok(views.html.showArtist(v.name))
-        case (Right(Error(ErrorDetails(401, _))), Left(_)) => Redirect(routes.AuthorizationController.authorize())
-        case (Right(v), Left(_)) =>
-          Ok(views.html.showArtist(s"Error! Error code: ${v.error.status} Error Message: ${v.error.message}"))
-        case _ =>
-          InternalServerError("Response couldn't be decoded as an error or artist details...")
+        processResponse[ArtistDetails](response.body)(ArtistDetails.convertToString)
       }
     }
-  }
 
-  def getMyTopArtists(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    val accessToken: Option[String] = getAccessToken(request)
-    val responseFuture: Option[Future[WSResponse]] = accessToken.map(hitApi(myTopArtistsEndpoint, _).get())
-    val responseOpt: Option[WSResponse] = responseFuture.map(Await.result(_, Duration.Inf))
-    responseOpt match {
-      case Some(response) => {
-        val error: Either[circe.Error, Error] = decode[Error](response.body)
-        val artists: Either[circe.Error, ArtistList] = decode[ArtistList](response.body)
-        (error, artists) match {
-          case (Right(Error(ErrorDetails(401, _))), _) => Redirect(routes.AuthorizationController.authorize())
-          case (_, Right(artists: ArtistList)) =>
-            val artistDetailString = artists.items.map(artist => s"Name: ${artist.name}, Popularity: ${artist.popularity}").mkString(" | ")
-            Ok(views.html.showArtist(artistDetailString))
-          case _ =>  InternalServerError("Response couldn't be decoded as an error or artist details...")
-
-        }
+  def getMyTopArtists(): Action[AnyContent] =
+    Action { implicit request: Request[AnyContent] =>
+      val accessToken: Option[String] = getAccessToken(request)
+      accessToken.fold(redirectToAuthorize) { token =>
+        val responseFuture: Future[WSResponse] = hitApi(myTopArtistsEndpoint, token).get()
+        val response: WSResponse               = Await.result(responseFuture, Duration.Inf)
+        processResponse[ArtistList](response.body)(ArtistList.convertToString)
       }
-      case None           => Redirect(routes.AuthorizationController.authorize())
     }
-  }
+
+  def getMyTopTracks(): Action[AnyContent] =
+    Action { implicit request: Request[AnyContent] =>
+      val accessToken: Option[String] = getAccessToken(request)
+      accessToken.fold(redirectToAuthorize) { token =>
+        val responseFuture: Future[WSResponse] = hitApi(myTopTracksEndpoint, token).get()
+        val response: WSResponse               = Await.result(responseFuture, Duration.Inf)
+        processResponse[TrackList](response.body)(TrackList.convertToString)
+      }
+    }
 }

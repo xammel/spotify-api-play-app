@@ -5,6 +5,11 @@ import io.circe.generic.semiauto._
 import play.api.data.Form
 import play.api.data.Forms._
 
+trait JsonResponse[T] {
+  implicit val decoder: Decoder[T]
+  def convertToString(data: T): String
+}
+
 case class AccessToken(access_token: String)
 
 object AccessToken {
@@ -32,52 +37,37 @@ object ErrorDetails {
   implicit val errorDetailsDecoder: Decoder[ErrorDetails] = deriveDecoder[ErrorDetails]
 }
 
-// {
-//  "external_urls": {
-//    "spotify": "https://open.spotify.com/artist/6fxk3UXHTFYET8qCT9WlBF"
-//  },
-//  "followers": {
-//    "href": null,
-//    "total": 279275
-//  },
-//  "genres": [
-//    "chamber pop",
-//    "indie rock",
-//    "kc indie",
-//    "modern folk rock"
-//  ],
-//  "href": "https://api.spotify.com/v1/artists/6fxk3UXHTFYET8qCT9WlBF",
-//  "id": "6fxk3UXHTFYET8qCT9WlBF",
-//  "images": [
-//    {
-//      "height": 640,
-//      "url": "https://i.scdn.co/image/ab6761610000e5eb292b964365b5de1a53216852",
-//      "width": 640
-//    },
-//    {
-//      "height": 320,
-//      "url": "https://i.scdn.co/image/ab67616100005174292b964365b5de1a53216852",
-//      "width": 320
-//    },
-//    {
-//      "height": 160,
-//      "url": "https://i.scdn.co/image/ab6761610000f178292b964365b5de1a53216852",
-//      "width": 160
-//    }
-//  ],
-//  "name": "Kevin Morby",
-//  "popularity": 50,
-//  "type": "artist",
-//  "uri": "spotify:artist:6fxk3UXHTFYET8qCT9WlBF"
-//}
 case class ArtistDetails(name: String, popularity: Int)
 
-object ArtistDetails {
-  implicit val artistDetailsDecoder: Decoder[ArtistDetails] = deriveDecoder[ArtistDetails]
+object ArtistDetails extends JsonResponse[ArtistDetails] {
+
+  implicit val decoder: Decoder[ArtistDetails] = deriveDecoder[ArtistDetails]
+
+  def convertToString(artist: ArtistDetails): String = s"Name: ${artist.name}, Popularity: ${artist.popularity}"
 }
 
 case class ArtistList(items: Seq[ArtistDetails])
 
-object ArtistList {
-  implicit val artistListDecoder: Decoder[ArtistList] = deriveDecoder[ArtistList]
+object ArtistList extends JsonResponse[ArtistList] {
+
+  implicit val decoder: Decoder[ArtistList] = deriveDecoder[ArtistList]
+
+  def convertToString(artists: ArtistList): String =
+    artists.items.map(ArtistDetails.convertToString).mkString(" | ")
+}
+
+case class Track(name: String)
+
+object Track extends JsonResponse[Track] {
+  implicit val decoder: Decoder[Track] = deriveDecoder[Track]
+
+  def convertToString(track: Track): String = s"Track Name: ${track.name}"
+}
+
+case class TrackList(items: Seq[Track])
+
+object TrackList extends JsonResponse[TrackList] {
+  implicit val decoder: Decoder[TrackList] = deriveDecoder[TrackList]
+
+  def convertToString(trackList: TrackList): String = trackList.items.map(Track.convertToString).mkString(" | ")
 }

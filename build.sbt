@@ -4,7 +4,7 @@ val circeVersion = "0.14.3"
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(
-    name := """play-scala-hello-world-tutorial""",
+    name := """spotify-api-app""",
     organization := "com.example",
     version := "1.0-SNAPSHOT",
     scalaVersion := "2.13.4",

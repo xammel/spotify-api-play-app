@@ -1,10 +1,12 @@
 package utils
 
-import play.api.mvc.RequestHeader
+import play.api.mvc.{RequestHeader, _}
 import utils.StringConstants.tokenKey
+import play.api.mvc.Results
 
-object Functions {
+object Functions extends Results {
 
+  def redirectToAuthorize: Result = Redirect(controllers.routes.AuthorizationController.authorize())
   def getAccessToken(request: RequestHeader): Option[String] = request.session.get(tokenKey)
   def getAccessTokenUnsafe(request: RequestHeader): String =
     request.session.get(tokenKey) match {
