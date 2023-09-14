@@ -37,26 +37,26 @@ object ErrorDetails {
   implicit val errorDetailsDecoder: Decoder[ErrorDetails] = deriveDecoder[ErrorDetails]
 }
 
-case class ArtistDetails(name: String, popularity: Int)
+case class Artist(name: String, popularity: Int)
 
-object ArtistDetails extends JsonResponse[ArtistDetails] {
+object Artist extends JsonResponse[Artist] {
 
-  implicit val decoder: Decoder[ArtistDetails] = deriveDecoder[ArtistDetails]
+  implicit val decoder: Decoder[Artist] = deriveDecoder[Artist]
 
-  def convertToString(artist: ArtistDetails): String = s"Name: ${artist.name}, Popularity: ${artist.popularity}"
+  def convertToString(artist: Artist): String = s"Name: ${artist.name}, Popularity: ${artist.popularity}"
 }
 
-case class ArtistList(items: Seq[ArtistDetails])
+case class ArtistList(items: Seq[Artist])
 
 object ArtistList extends JsonResponse[ArtistList] {
 
   implicit val decoder: Decoder[ArtistList] = deriveDecoder[ArtistList]
 
   def convertToString(artists: ArtistList): String =
-    artists.items.map(ArtistDetails.convertToString).mkString(" | ")
+    artists.items.map(Artist.convertToString).mkString(" | ")
 }
 
-case class Track(name: String)
+case class Track(name: String)//, artists: Seq[Artist])
 
 object Track extends JsonResponse[Track] {
   implicit val decoder: Decoder[Track] = deriveDecoder[Track]

@@ -11,7 +11,7 @@ import scala.concurrent.{Await, Future}
 import utils.Functions.{getAccessToken, getAccessTokenUnsafe, redirectToAuthorize}
 import io.circe.parser._
 import io.circe._
-import models.{ArtistDetails, ArtistList, Error, ErrorDetails, TrackList}
+import models.{Artist, ArtistList, Error, ErrorDetails, TrackList}
 
 class ApiCallController @Inject() (
     ws: WSClient,
@@ -27,9 +27,10 @@ class ApiCallController @Inject() (
     val error: Either[circe.Error, Error] = decode[Error](responseBody)
     val data: Either[circe.Error, T]      = decode[T](responseBody)
     (error, data) match {
-      case (Right(Error(ErrorDetails(401, _))), _) => redirectToAuthorize
-      case (_, Right(data: T))                     => Ok(views.html.showArtist(dataToString(data)))
-      case _                                       => InternalServerError("Response couldn't be decoded as an error or artist details...")
+      case (Right(Error(ErrorDetails(401, _))), _)     => redirectToAuthorize
+      case (Right(Error(ErrorDetails(_, message))), _) => InternalServerError(message)
+      case (_, Right(data: T))                         => Ok(views.html.showArtist(dataToString(data)))
+      case _                                           => InternalServerError("Response couldn't be decoded as an error or artist details...")
     }
   }
 
@@ -66,7 +67,7 @@ class ApiCallController @Inject() (
         //todo Make this nicer so we don't extract the value from the Future
         val response: WSResponse = Await.result(artistResponse(artistId), Duration.Inf)
 
-        processResponse[ArtistDetails](response.body)(ArtistDetails.convertToString)
+        processResponse[Artist](response.body)(Artist.convertToString)
       }
     }
 
