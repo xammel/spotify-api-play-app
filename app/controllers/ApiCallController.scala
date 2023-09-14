@@ -4,14 +4,20 @@ import io.circe
 import javax.inject.Inject
 import play.api.libs.ws._
 import play.api.mvc._
-import utils.StringConstants.{getArtistEndpoint, myTopArtistsEndpoint, searchApi, myTopTracksEndpoint}
-
+import utils.StringConstants.{
+  getArtistEndpoint,
+  myTopArtistsEndpoint,
+  searchApi,
+  myTopTracksEndpoint,
+  recommendationsEndpoint
+}
+import utils.Functions.joinURLParameters
 import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{Await, Future}
 import utils.Functions.{getAccessToken, getAccessTokenUnsafe, redirectToAuthorize}
 import io.circe.parser._
 import io.circe._
-import models.{Artist, ArtistList, Error, ErrorDetails, TrackList}
+import models.{Artist, ArtistList, Error, ErrorDetails, TrackList, Recommendations}
 
 class ApiCallController @Inject() (
     ws: WSClient,
@@ -81,13 +87,50 @@ class ApiCallController @Inject() (
       }
     }
 
+  def getTopTracks(accessToken: String): String = {
+    val params = Map(
+      "time_range" -> "short_term", // short_term = last 4 weeks, medium_term = last 6 months, long_term = all time
+      "limit"      -> "20" // Number of tracks to return
+    )
+    val joinedParams                       = joinURLParameters(params)
+    val endpoint                           = s"$myTopTracksEndpoint?$joinedParams"
+    val responseFuture: Future[WSResponse] = hitApi(endpoint, accessToken).get()
+    val response: WSResponse               = Await.result(responseFuture, Duration.Inf)
+    response.body
+  }
+
   def getMyTopTracks(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
       val accessToken: Option[String] = getAccessToken(request)
       accessToken.fold(redirectToAuthorize) { token =>
-        val responseFuture: Future[WSResponse] = hitApi(myTopTracksEndpoint, token).get()
-        val response: WSResponse               = Await.result(responseFuture, Duration.Inf)
-        processResponse[TrackList](response.body)(TrackList.convertToString)
+        val topTracksString = getTopTracks(token)
+        processResponse[TrackList](topTracksString)(TrackList.convertToString)
+      }
+    }
+
+  def getRecommendedTracks(): Action[AnyContent] =
+    Action { implicit request: Request[AnyContent] =>
+      val accessToken: Option[String] = getAccessToken(request)
+      accessToken.fold(redirectToAuthorize) { token =>
+        val topTracksRaw                                     = getTopTracks(token)
+        val topTracksDecoded: Either[circe.Error, TrackList] = decode[TrackList](topTracksRaw)
+
+        val trackIds: Either[circe.Error, Seq[String]] = topTracksDecoded.map(_.items.map(_.id).take(5))
+
+        trackIds.fold(
+          error => InternalServerError(error.getMessage),
+          ids => {
+            val params = Map(
+              "limit"       -> "10", // number of recommendations to return
+              "seed_tracks" -> ids.mkString(",")
+            )
+            val joinedParams                       = joinURLParameters(params)
+            val endpoint                           = s"$recommendationsEndpoint?$joinedParams"
+            val responseFuture: Future[WSResponse] = hitApi(endpoint, token).get()
+            val response: WSResponse               = Await.result(responseFuture, Duration.Inf)
+            processResponse[Recommendations](response.body)(Recommendations.convertToString)
+          }
+        )
       }
     }
 }

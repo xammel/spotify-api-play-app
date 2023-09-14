@@ -11,7 +11,8 @@ GET     /authorize                          controllers.AuthorizationController.
 GET     /authorization-callback             controllers.AuthorizationController.callback(code)
 GET     /home                               controllers.HomeController.home()
 GET     /my-top-artists                     controllers.ApiCallController.getMyTopArtists()
-GET     /my-top-tracks                     controllers.ApiCallController.getMyTopTracks()
+GET     /my-top-tracks                      controllers.ApiCallController.getMyTopTracks()
+GET     /recommendations                    controllers.ApiCallController.getRecommendedTracks()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

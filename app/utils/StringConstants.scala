@@ -19,7 +19,8 @@ object StringConstants {
     s"$searchEndpoint?q=$query" // remaster%2520track%3ADoxy%2520artist%3AMies%2520Davis&type=album
   val meTopEndpoint = s"$https/$apiSpotify/me/top"
   val myTopArtistsEndpoint = s"$meTopEndpoint/artists"
-  val myTopTracksEndpoint = s"$meTopEndpoint/tracks?time_range=short_term"
+  val myTopTracksEndpoint = s"$meTopEndpoint/tracks"
+  val recommendationsEndpoint = s"$https/$apiSpotify/recommendations"
 
   //Local URLs
   val localhost = "localhost:9000"

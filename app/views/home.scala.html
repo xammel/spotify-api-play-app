@@ -13,6 +13,9 @@
         <button onclick="location.href = '/my-top-tracks';">My Top Tracks</button>
       </p>
       <p>
+        <button onclick="location.href = '/recommendations';">Recommend Me Tracks!</button>
+      </p>
+      <p>
         @helper.form(action = routes.ApiCallController.getArtist("")) {
         @helper.inputText(artistIdForm("artistId"))
         <input type="submit" value="Search this artist">
