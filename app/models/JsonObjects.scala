@@ -7,7 +7,7 @@ import play.api.data.Forms._
 
 trait JsonResponse[T] {
   implicit val decoder: Decoder[T]
-  def convertToString(data: T): String
+  def convertToStringSeq(data: T): Seq[String]
 }
 
 case class AccessToken(access_token: String)
@@ -43,7 +43,7 @@ object Artist extends JsonResponse[Artist] {
 
   implicit val decoder: Decoder[Artist] = deriveDecoder[Artist]
 
-  def convertToString(artist: Artist): String = s"Name: ${artist.name}, ID: ${artist.id}"
+  override def convertToStringSeq(artist: Artist): Seq[String] = Seq(s"Name: ${artist.name}, ID: ${artist.id}")
 }
 
 case class ArtistList(items: Seq[Artist])
@@ -52,8 +52,8 @@ object ArtistList extends JsonResponse[ArtistList] {
 
   implicit val decoder: Decoder[ArtistList] = deriveDecoder[ArtistList]
 
-  def convertToString(artists: ArtistList): String =
-    artists.items.map(Artist.convertToString).mkString(" | ")
+  def convertToStringSeq(artists: ArtistList): Seq[String] =
+    artists.items.flatMap(Artist.convertToStringSeq)
 }
 
 case class Track(name: String, artists: Seq[Artist], id: String)
@@ -61,7 +61,8 @@ case class Track(name: String, artists: Seq[Artist], id: String)
 object Track extends JsonResponse[Track] {
   implicit val decoder: Decoder[Track] = deriveDecoder[Track]
 
-  def convertToString(track: Track): String = s"${track.name} by ${track.artists.map(_.name).mkString(", ")}"
+  def convertToStringSeq(track: Track): Seq[String] =
+    Seq(s"${track.name} by ${track.artists.map(_.name).mkString(" & ")}")
 }
 
 case class TrackList(items: Seq[Track])
@@ -69,13 +70,25 @@ case class TrackList(items: Seq[Track])
 object TrackList extends JsonResponse[TrackList] {
   implicit val decoder: Decoder[TrackList] = deriveDecoder[TrackList]
 
-  def convertToString(trackList: TrackList): String = trackList.items.map(Track.convertToString).mkString(" | ")
+  def convertToStringSeq(trackList: TrackList): Seq[String] = trackList.items.flatMap(Track.convertToStringSeq)
 }
 
-case class Recommendations(tracks: Seq[Track]) // seeds: Seq[RecommendationSeedObject],
+case class Recommendations(seeds: Seq[RecommendationSeed], tracks: Seq[Track]) // seeds: Seq[RecommendationSeedObject],
 
 object Recommendations extends JsonResponse[Recommendations] {
   implicit val decoder: Decoder[Recommendations] = deriveDecoder[Recommendations]
 
-  override def convertToString(data: Recommendations): String = data.tracks.map(Track.convertToString).mkString(" | ")
+  override def convertToStringSeq(data: Recommendations): Seq[String] =
+    data.seeds.flatMap(RecommendationSeed.convertToStringSeq) ++ data.tracks.flatMap(Track.convertToStringSeq)
+}
+
+case class RecommendationSeed(afterFilteringSize: Int, afterRelinkingSize: Int, id: String, initialPoolSize: Int)
+
+object RecommendationSeed extends JsonResponse[RecommendationSeed] {
+  override implicit val decoder: Decoder[RecommendationSeed] = deriveDecoder[RecommendationSeed]
+
+  override def convertToStringSeq(data: RecommendationSeed): Seq[String] =
+    Seq(
+      s"afterFilteringSize: ${data.afterFilteringSize}, afterRelinkingSize: ${data.afterRelinkingSize}, id: ${data.id}, initialPoolSize: ${data.initialPoolSize}"
+    )
 }

@@ -17,7 +17,7 @@ import scala.concurrent.{Await, Future}
 import utils.Functions.{getAccessToken, getAccessTokenUnsafe, redirectToAuthorize}
 import io.circe.parser._
 import io.circe._
-import models.{Artist, ArtistList, Error, ErrorDetails, TrackList, Recommendations}
+import models.{Artist, ArtistList, Error, ErrorDetails, TrackList, Recommendations, Track}
 
 class ApiCallController @Inject() (
     ws: WSClient,
@@ -29,13 +29,15 @@ class ApiCallController @Inject() (
       .addHttpHeaders("Authorization" -> s"Bearer $token")
       .withRequestTimeout(10000.millis)
 
-  def processResponse[T: Manifest](responseBody: String)(dataToString: T => String)(implicit decoder: Decoder[T]) = {
+  def processResponse[T: Manifest](
+      responseBody: String
+  )(title: String, dataToStringSeq: T => Seq[String])(implicit decoder: Decoder[T]) = {
     val error: Either[circe.Error, Error] = decode[Error](responseBody)
     val data: Either[circe.Error, T]      = decode[T](responseBody)
     (error, data) match {
       case (Right(Error(ErrorDetails(401, _))), _)     => redirectToAuthorize
       case (Right(Error(ErrorDetails(_, message))), _) => InternalServerError(message)
-      case (_, Right(data: T))                         => Ok(views.html.showArtist(dataToString(data)))
+      case (_, Right(data: T))                         => Ok(views.html.showArtist(title, dataToStringSeq(data)))
       case _                                           => InternalServerError("Response couldn't be decoded as an error or artist details...")
     }
   }
@@ -52,9 +54,7 @@ class ApiCallController @Inject() (
 
         println(searchURL(""))
 
-        val response = Await.result(searchResponse(""), Duration.Inf)
-
-        Ok(views.html.search(response.body))
+        Ok(views.html.search("")) //response.body
       }
     }
 
@@ -70,10 +70,7 @@ class ApiCallController @Inject() (
         def artistResponse(artistId: String): Future[WSResponse] =
           artistRequest(artistId).get()
 
-        //todo Make this nicer so we don't extract the value from the Future
-        val response: WSResponse = Await.result(artistResponse(artistId), Duration.Inf)
-
-        processResponse[Artist](response.body)(Artist.convertToString)
+        processResponse[Artist]("")("Get Artist", Artist.convertToStringSeq)
       }
     }
 
@@ -83,7 +80,7 @@ class ApiCallController @Inject() (
       accessToken.fold(redirectToAuthorize) { token =>
         val responseFuture: Future[WSResponse] = hitApi(myTopArtistsEndpoint, token).get()
         val response: WSResponse               = Await.result(responseFuture, Duration.Inf)
-        processResponse[ArtistList](response.body)(ArtistList.convertToString)
+        processResponse[ArtistList](response.body)("Your Top Artists", ArtistList.convertToStringSeq)
       }
     }
 
@@ -104,7 +101,7 @@ class ApiCallController @Inject() (
       val accessToken: Option[String] = getAccessToken(request)
       accessToken.fold(redirectToAuthorize) { token =>
         val topTracksString = getTopTracks(token)
-        processResponse[TrackList](topTracksString)(TrackList.convertToString)
+        processResponse[TrackList](topTracksString)("Your Top Tracks", TrackList.convertToStringSeq)
       }
     }
 
@@ -113,24 +110,36 @@ class ApiCallController @Inject() (
       val accessToken: Option[String] = getAccessToken(request)
       accessToken.fold(redirectToAuthorize) { token =>
         val topTracksRaw                                     = getTopTracks(token)
+
+        val error: Either[circe.Error, Error]                = decode[Error](topTracksRaw)
+
         val topTracksDecoded: Either[circe.Error, TrackList] = decode[TrackList](topTracksRaw)
 
-        val trackIds: Either[circe.Error, Seq[String]] = topTracksDecoded.map(_.items.map(_.id).take(5))
+        val seedTracksOrError: Either[circe.Error, Seq[Track]] = topTracksDecoded.map(_.items.take(5))
 
-        trackIds.fold(
-          error => InternalServerError(error.getMessage),
-          ids => {
-            val params = Map(
-              "limit"       -> "10", // number of recommendations to return
-              "seed_tracks" -> ids.mkString(",")
-            )
-            val joinedParams                       = joinURLParameters(params)
-            val endpoint                           = s"$recommendationsEndpoint?$joinedParams"
-            val responseFuture: Future[WSResponse] = hitApi(endpoint, token).get()
-            val response: WSResponse               = Await.result(responseFuture, Duration.Inf)
-            processResponse[Recommendations](response.body)(Recommendations.convertToString)
-          }
-        )
+        val response: Either[circe.Error, String] = seedTracksOrError.map { seedTracks =>
+          val seedTrackIds = seedTracks.map(_.id)
+          val params = Map(
+            "limit"       -> "10", // number of recommendations to return
+            "seed_tracks" -> seedTrackIds.mkString(",")
+          )
+          val joinedParams                       = joinURLParameters(params)
+          val endpoint                           = s"$recommendationsEndpoint?$joinedParams"
+          val responseFuture: Future[WSResponse] = hitApi(endpoint, token).get()
+          Await.result(responseFuture, Duration.Inf).body
+        }
+
+        val recommendations: Either[circe.Error, Recommendations] = response.flatMap(decode[Recommendations])
+
+        println(error, recommendations, seedTracksOrError)
+        (error, recommendations, seedTracksOrError) match {
+          case (Right(Error(ErrorDetails(401, _))), _, _)     => redirectToAuthorize
+          case (Right(Error(ErrorDetails(_, message))), _, _) => InternalServerError(message)
+          case (_, Right(recommendations), Right(seedTracks)) =>
+            Ok(views.html.recommendations(seedTracks, recommendations.tracks))
+          case _ => InternalServerError("Response couldn't be decoded as an error or artist details...")
+        }
+
       }
     }
 }

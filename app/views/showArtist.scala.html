@@ -1,10 +1,12 @@
-@(futureResponse: String)
-@main("Hello") {
+@(title: String, dataToDisplay: Seq[String])
+@main(title) {
 <section id="content">
     <div class="wrapper doc">
         <article>
-            <h1>Hello</h1>
-            <p>@futureResponse</p>
+            <h1>@title</h1>
+            @dataToDisplay.map{ bullet =>
+                <li>@bullet</li>
+            }
             <p>
                 <button onclick="location.href = '/';"> Now let's get out of this shit page shall we and go back home</button>
             </p>

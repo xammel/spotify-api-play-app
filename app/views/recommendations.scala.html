@@ -1,0 +1,35 @@
+@(seeds: Seq[Track], recommendations: Seq[Track])
+
+@main("Recommendations") {
+<section id="content">
+    <div class="wrapper doc">
+        <article>
+            <h1>Seed Tracks</h1>
+            <p>
+                @seeds.map{ seed =>
+            <li>@seed.name by @seed.artists.map(_.name).mkString(" & ")</li>
+            }
+            </p>
+            <h1>Recommendations</h1>
+            <p>
+                @recommendations.map{ track =>
+            <li>@track.name by @track.artists.map(_.name).mkString(" & ")</li>
+
+            <iframe style="border-radius:12px"
+                    src=@("https://open.spotify.com/embed/track/" + track.id +
+            "?utm_source=generator")
+            width="100%" height="380" frameBorder="0" allowfullscreen=""
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+            }
+            </p>
+            <p>
+                <button onclick="location.href = '/';"> Now let's get out of this shit page shall we and go back home
+                </button>
+            </p>
+        </article>
+        <aside>
+            @commonSidebar()
+        </aside>
+    </div>
+</section>
+}
