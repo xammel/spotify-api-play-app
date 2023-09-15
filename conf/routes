@@ -13,6 +13,7 @@ GET     /home                               controllers.HomeController.home()
 GET     /my-top-artists                     controllers.ApiCallController.getMyTopArtists()
 GET     /my-top-tracks                      controllers.ApiCallController.getMyTopTracks()
 GET     /recommendations                    controllers.ApiCallController.getRecommendedTracks()
+GET     /save-track                         controllers.ApiCallController.saveTrack(trackId : String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

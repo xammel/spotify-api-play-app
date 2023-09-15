@@ -52,8 +52,6 @@ class ApiCallController @Inject() (
         def searchResponse(query: String): Future[WSResponse] =
           searchRequest("").get()
 
-        println(searchURL(""))
-
         Ok(views.html.search("")) //response.body
       }
     }
@@ -109,9 +107,9 @@ class ApiCallController @Inject() (
     Action { implicit request: Request[AnyContent] =>
       val accessToken: Option[String] = getAccessToken(request)
       accessToken.fold(redirectToAuthorize) { token =>
-        val topTracksRaw                                     = getTopTracks(token)
+        val topTracksRaw = getTopTracks(token)
 
-        val error: Either[circe.Error, Error]                = decode[Error](topTracksRaw)
+        val error: Either[circe.Error, Error] = decode[Error](topTracksRaw)
 
         val topTracksDecoded: Either[circe.Error, TrackList] = decode[TrackList](topTracksRaw)
 
@@ -131,7 +129,6 @@ class ApiCallController @Inject() (
 
         val recommendations: Either[circe.Error, Recommendations] = response.flatMap(decode[Recommendations])
 
-        println(error, recommendations, seedTracksOrError)
         (error, recommendations, seedTracksOrError) match {
           case (Right(Error(ErrorDetails(401, _))), _, _)     => redirectToAuthorize
           case (Right(Error(ErrorDetails(_, message))), _, _) => InternalServerError(message)
@@ -142,4 +139,12 @@ class ApiCallController @Inject() (
 
       }
     }
+
+  def saveTrack(trackId: String): Action[AnyContent] =
+    Action { implicit request =>
+//      val arg = form.bindFromRequest.get("trackId")
+      println(trackId)
+      Continue
+    }
+
 }
