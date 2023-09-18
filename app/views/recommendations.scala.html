@@ -15,7 +15,7 @@
                 @recommendations.map{ track =>
             <li>@track.name by @track.artists.map(_.name).mkString(" & ")</li>
 
-            <form action="@routes.ApiCallController.saveTrack(track.id)" method="get">
+            <form action="@routes.ApiCallController.saveTrack(track.id)" method="post">
                 <button class="btn btn-primary">Save Track!</button>
             </form>
 
