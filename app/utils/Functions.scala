@@ -7,7 +7,7 @@ import play.api.mvc.Results
 object Functions extends Results {
 
   def redirectToAuthorize: Result = Redirect(controllers.routes.AuthorizationController.authorize())
-  def getAccessToken(request: RequestHeader): Option[String] = request.session.get(tokenKey)
+  def getAccessToken(implicit request: RequestHeader): Option[String] = request.session.get(tokenKey)
   def getAccessTokenUnsafe(request: RequestHeader): String =
     request.session.get(tokenKey) match {
       case Some(v) => v
