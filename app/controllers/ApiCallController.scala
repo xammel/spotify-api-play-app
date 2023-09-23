@@ -1,5 +1,6 @@
 package controllers
 
+import akka.Done
 import io.circe
 import javax.inject.Inject
 import play.api.libs.ws._
@@ -7,22 +8,32 @@ import play.api.mvc._
 import utils.StringConstants.{
   getArtistEndpoint,
   myTopArtistsEndpoint,
-  searchApi,
   myTopTracksEndpoint,
-  recommendationsEndpoint
+  recommendationsEndpoint,
+  searchApi
 }
 import utils.Functions.joinURLParameters
+
 import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{Await, Future}
 import utils.Functions.{getAccessToken, getAccessTokenUnsafe, redirectToAuthorize}
 import io.circe.parser._
 import io.circe._
-import models.{Artist, ArtistList, Error, ErrorDetails, TrackList, Recommendations, Track}
+import models.{Artist, ArtistList, Error, ErrorDetails, Recommendations, Track, TrackList}
+import play.api.cache._
+import play.api.mvc._
+import javax.inject.Inject
 
 class ApiCallController @Inject() (
+    cache: AsyncCacheApi,
     ws: WSClient,
     val controllerComponents: ControllerComponents
 ) extends BaseController {
+
+  //TODO set recommended tracks using a cache like this:
+  //  val result: Future[Done] = cache.set("item.key", 2)
+  //  val futureMaybeUser: Option[Int] = Await.result(cache.get[Int]("item.key"), Duration.Inf)
+  //  println(futureMaybeUser)
 
   def hitApi(url: String, token: String): WSRequest =
     ws.url(url)
@@ -142,7 +153,6 @@ class ApiCallController @Inject() (
 
   def saveTrack(trackId: String): Action[AnyContent] =
     Action { implicit request =>
-//      val arg = form.bindFromRequest.get("trackId")
       println(trackId)
       Continue
     }
