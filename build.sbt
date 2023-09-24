@@ -12,13 +12,14 @@ lazy val root = (project in file("."))
       guice,
       "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test,
       ws,
-      ehcache,
-      cacheApi
+//      ehcache,
+//      cacheApi,
+      caffeine,
     ) ++ Seq(
       "io.circe" %% "circe-core",
       "io.circe" %% "circe-generic",
       "io.circe" %% "circe-parser"
     ).map(_ % circeVersion),
     scalacOptions ++= Seq("-feature", "-deprecation", "-Xfatal-warnings"),
-    routesImport += "models.Binders._"
+    routesImport += "models.Binders"
   )
