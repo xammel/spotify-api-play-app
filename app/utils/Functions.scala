@@ -1,5 +1,6 @@
 package utils
 
+import akka.Done
 import io.circe
 import io.circe.parser.decode
 import models.{AccessToken, Error, ErrorDetails, Recommendations, Track, TrackList}
@@ -10,6 +11,7 @@ import utils.StringConstants.{myTopTracksEndpoint, recommendationsEndpoint, toke
 
 import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{Await, Future}
+import scala.util.Success
 
 object Functions extends Results {
 
@@ -34,7 +36,7 @@ object Functions extends Results {
   def joinURLParameters(params: Map[String, String]): String =
     params.map { case (k, v) => s"$k=$v" }.mkString("&")
 
-  def cacheTopTracks(implicit accessToken: AccessToken, ws: WSClient, cache: AsyncCacheApi) = {
+  def cacheTopTracks(implicit accessToken: AccessToken, ws: WSClient, cache: AsyncCacheApi): Either[Error, Done] = {
     val params = Map(
       "time_range" -> "short_term", // short_term = last 4 weeks, medium_term = last 6 months, long_term = all time
       "limit"      -> "20" // Number of tracks to return
@@ -51,21 +53,17 @@ object Functions extends Results {
     println(error, topTracksDecoded)
 
     (error, topTracksDecoded) match {
-      case (Right(Error(ErrorDetails(401, _))), _)     => {
-        println("got to error redirect")
-        redirectToAuthorize
-      }
-      case (Right(Error(ErrorDetails(_, message))), _) => InternalServerError(message)
+      case (Right(error), _) => Left(error)
       case (_, Right(trackList)) =>
         Await.result(cache.set("topTracks", trackList), Duration.Inf)
-        Ok
-      case _ => InternalServerError("...")
+        Right(Done)
+      case _ => Left(Error(ErrorDetails(500, "Couldn't decode response as a known error or track list")))
     }
   }
 
   def cacheRecommendedTracks(
       topTracks: TrackList
-  )(implicit accessToken: AccessToken, ws: WSClient, cache: AsyncCacheApi): Result = {
+  )(implicit accessToken: AccessToken, ws: WSClient, cache: AsyncCacheApi): Either[Error, Done] = {
 
     val token = accessToken.access_token
     //    val topTracksRaw = getTopTracks(token)
@@ -89,10 +87,10 @@ object Functions extends Results {
     val recommendations: Either[circe.Error, Recommendations] = decode[Recommendations](recommendationsJson)
 
     recommendations match {
-      case Left(decodingError) => InternalServerError(decodingError.getMessage)
+      case Left(decodingError) => Left(Error(ErrorDetails(500, decodingError.getMessage)))
       case Right(recommendations) =>
         Await.result(cache.set("recommendedTracks", recommendations), Duration.Inf)
-        Ok
+        Right(Done)
     }
   }
 

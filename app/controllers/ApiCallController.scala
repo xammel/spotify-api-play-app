@@ -5,16 +5,15 @@ import io.circe
 import io.circe._
 import io.circe.parser._
 import javax.inject.Inject
-import models.{AccessToken, Artist, ArtistList, Error, ErrorDetails, Recommendations, Track, TrackList}
+import models.{Artist, ArtistList, Error, ErrorDetails, Recommendations, TrackList}
 import play.api.cache._
 import play.api.libs.ws._
 import play.api.mvc._
-import utils.Functions.{getAccessToken, getAccessTokenUnsafe, joinURLParameters, redirectToAuthorize}
+import utils.Functions._
 import utils.StringConstants._
-import utils.Functions.hitApi
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.{Duration, _}
-import scala.concurrent.{Await, ExecutionContext, Future}
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 class ApiCallController @Inject() (
     cache: AsyncCacheApi,
@@ -25,9 +24,10 @@ class ApiCallController @Inject() (
   val hitApiWithClient = hitApi(ws)(_, _)
 
   //TODO set recommended tracks using a cache like this:
-    val result: Future[Done] = cache.set("item.key", 2)
-    val futureMaybeUser: Option[Int] = Await.result(cache.get[Int]("item.key"), Duration.Inf)
-    println("future maybe user", futureMaybeUser)
+  //TODO remove
+  val result: Future[Done]         = cache.set("item.key", 2)
+  val futureMaybeUser: Option[Int] = Await.result(cache.get[Int]("item.key"), Duration.Inf)
+  println("future maybe user", futureMaybeUser)
 
   def processResponse[T: Manifest](
       responseBody: String
@@ -35,7 +35,7 @@ class ApiCallController @Inject() (
     val error: Either[circe.Error, Error] = decode[Error](responseBody)
     val data: Either[circe.Error, T]      = decode[T](responseBody)
     (error, data) match {
-      case (Right(Error(ErrorDetails(401, _))), _)     => {
+      case (Right(Error(ErrorDetails(401, _))), _) => {
         //TODO remove
         println("inside processResponse redirect")
         redirectToAuthorize
@@ -107,8 +107,27 @@ class ApiCallController @Inject() (
       }
     }
 
+  def getRecommendedTracks(): Action[AnyContent] =
+    Action { implicit request: Request[AnyContent] =>
+      val topTracks: Option[TrackList] = Await.result(cache.get[TrackList]("topTracks"), Duration.Inf)
+      val recommendedTracks: Option[Recommendations] =
+        Await.result(cache.get[Recommendations]("recommendedTracks"), Duration.Inf)
+
+      //TODO remove
+      println("inside reccs")
+      println(topTracks, recommendedTracks)
+
+      (topTracks, recommendedTracks) match {
+        case (Some(tracks), Some(recommendations)) =>
+          Ok(views.html.recommendations(tracks.items, recommendations.tracks))
+        case _ => InternalServerError("Could not fetch cached results for top tracks or recommendations")
+      }
+
+    }
+
   def saveTrack(trackId: String): Action[AnyContent] =
     Action { implicit request =>
+      //TODO remove
       println(trackId)
       Continue
     }
