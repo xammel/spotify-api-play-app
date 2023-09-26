@@ -11,7 +11,6 @@ import utils.StringConstants.{myTopTracksEndpoint, recommendationsEndpoint, toke
 
 import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{Await, Future}
-import scala.util.Success
 
 object Functions extends Results {
 
@@ -28,7 +27,7 @@ object Functions extends Results {
         )
     }
 
-  def hitApi(ws: WSClient)(url: String, token: String): WSRequest =
+  def hitApi(url: String, token: String)(implicit ws: WSClient): WSRequest =
     ws.url(url)
       .addHttpHeaders("Authorization" -> s"Bearer $token")
       .withRequestTimeout(10000.millis)
@@ -43,7 +42,7 @@ object Functions extends Results {
     )
     val joinedParams                                     = joinURLParameters(params)
     val endpoint                                         = s"$myTopTracksEndpoint?$joinedParams"
-    val responseFuture: Future[WSResponse]               = hitApi(ws)(endpoint, accessToken.access_token).get()
+    val responseFuture: Future[WSResponse]               = hitApi(endpoint, accessToken.access_token).get()
     val topTracksRaw: String                             = Await.result(responseFuture, Duration.Inf).body
     val error: Either[circe.Error, Error]                = decode[Error](topTracksRaw)
     val topTracksDecoded: Either[circe.Error, TrackList] = decode[TrackList](topTracksRaw)
@@ -62,11 +61,6 @@ object Functions extends Results {
   )(implicit accessToken: AccessToken, ws: WSClient, cache: AsyncCacheApi): Either[Error, Done] = {
 
     val token = accessToken.access_token
-    //    val topTracksRaw = getTopTracks(token)
-    //
-    //    val error: Either[circe.Error, Error] = decode[Error](topTracksRaw)
-    //
-    //    val topTracksDecoded: Either[circe.Error, TrackList] = decode[TrackList](topTracksRaw)
 
     val seedTracks: Seq[Track] = topTracks.items.take(5)
 
@@ -77,7 +71,7 @@ object Functions extends Results {
     )
     val joinedParams                       = joinURLParameters(params)
     val endpoint                           = s"$recommendationsEndpoint?$joinedParams"
-    val responseFuture: Future[WSResponse] = hitApi(ws)(endpoint, token).get()
+    val responseFuture: Future[WSResponse] = hitApi(endpoint, token).get()
     val recommendationsJson: String        = Await.result(responseFuture, Duration.Inf).body
 
     val recommendations: Either[circe.Error, Recommendations] = decode[Recommendations](recommendationsJson)

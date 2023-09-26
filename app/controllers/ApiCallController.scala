@@ -21,7 +21,7 @@ class ApiCallController @Inject() (
     val controllerComponents: ControllerComponents
 ) extends BaseController {
 
-  val hitApiWithClient: (String, String) => WSRequest = hitApi(ws)(_, _)
+  implicit val implicitWs = ws
 
   //TODO set recommended tracks using a cache like this:
   //TODO remove
@@ -50,7 +50,7 @@ class ApiCallController @Inject() (
         def searchURL(query: String) =
           s"${searchApi("Miles Davis&type=artist")}" //"remaster%2520track%3ADoxy%2520artist%3AMies%2520Davis&type=album")}"
         def searchRequest(query: String) =
-          hitApiWithClient(searchURL(""), accessToken) //todo remove hardcoding
+          hitApi(searchURL(""), accessToken) //todo remove hardcoding
         def searchResponse(query: String): Future[WSResponse] =
           searchRequest("").get()
 
@@ -66,7 +66,7 @@ class ApiCallController @Inject() (
 
         def getArtistURL(artistId: String) = s"$getArtistEndpoint/$artistId"
         def artistRequest(artistId: String): WSRequest =
-          hitApiWithClient(getArtistURL(artistId), accessToken)
+          hitApi(getArtistURL(artistId), accessToken)
         def artistResponse(artistId: String): Future[WSResponse] =
           artistRequest(artistId).get()
 
@@ -78,7 +78,7 @@ class ApiCallController @Inject() (
     Action { implicit request: Request[AnyContent] =>
       val accessToken: Option[String] = getAccessToken(request)
       accessToken.fold(redirectToAuthorize) { token =>
-        val responseFuture: Future[WSResponse] = hitApiWithClient(myTopArtistsEndpoint, token).get()
+        val responseFuture: Future[WSResponse] = hitApi(myTopArtistsEndpoint, token).get()
         val response: WSResponse               = Await.result(responseFuture, Duration.Inf)
         processResponse[ArtistList](response.body)("Your Top Artists", ArtistList.convertToStringSeq)
       }
@@ -91,7 +91,7 @@ class ApiCallController @Inject() (
     )
     val joinedParams                       = joinURLParameters(params)
     val endpoint                           = s"$myTopTracksEndpoint?$joinedParams"
-    val responseFuture: Future[WSResponse] = hitApiWithClient(endpoint, accessToken).get()
+    val responseFuture: Future[WSResponse] = hitApi(endpoint, accessToken).get()
     val response: WSResponse               = Await.result(responseFuture, Duration.Inf)
     response.body
   }
@@ -114,6 +114,7 @@ class ApiCallController @Inject() (
       (topTracks, recommendedTracks) match {
         case (Some(tracks), Some(recommendations)) =>
           Ok(views.html.recommendations(tracks.items, recommendations.tracks))
+        //TODO add better handling
         case _ => InternalServerError("Could not fetch cached results for top tracks or recommendations")
       }
 
@@ -122,7 +123,6 @@ class ApiCallController @Inject() (
   def saveTrack(trackId: String): Action[AnyContent] =
     Action { implicit request =>
       getAccessToken.fold(redirectToAuthorize) { token =>
-
         val params = Map(
           "ids" -> trackId.trim
         )
@@ -130,19 +130,18 @@ class ApiCallController @Inject() (
         val data = Json.obj(
           "ids" -> Seq(trackId.trim)
         )
-        val joinedParams                       = joinURLParameters(params)
-        val endpoint                           = s"$myTracksEndpoint"//?$joinedParams"
-        val responseFuture: Future[WSResponse] = hitApiWithClient(endpoint, token)
+        val joinedParams = joinURLParameters(params)
+        val endpoint     = s"$myTracksEndpoint"
+        val responseFuture: Future[WSResponse] = hitApi(endpoint, token)
           .addHttpHeaders("Content-Type" -> "application/json")
-            .put(data)
-//          .a("data" -> "application/json")
+          .put(data)
 
         //TODO remove
         val result = Await.result(responseFuture, Duration.Inf)
         println("trying to save song")
         println(data)
         println("result body")
-        println(result.body)
+        println(result.status)
 
         Redirect(routes.ApiCallController.getRecommendedTracks())
       }

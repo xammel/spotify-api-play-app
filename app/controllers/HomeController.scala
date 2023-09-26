@@ -40,9 +40,8 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, cc: Controll
 
   def home(artistIdForm: Form[ArtistId] = ArtistId.artistIdForm.bind(Map("artistId" -> ""))): Action[AnyContent] =
     Action { implicit request: RequestHeader =>
-      val accessTokenOpt: Option[String] = getAccessToken
 
-      accessTokenOpt.fold(redirectToAuthorize) { token =>
+      getAccessToken.fold(redirectToAuthorize) { token =>
         implicit val accessToken: AccessToken = AccessToken(token)
 
         val cacheTopTracksResult: Either[models.Error, Done] = cacheTopTracks
