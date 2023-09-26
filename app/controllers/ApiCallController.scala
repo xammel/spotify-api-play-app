@@ -1,6 +1,5 @@
 package controllers
 
-import akka.Done
 import io.circe
 import io.circe._
 import io.circe.parser._
@@ -107,9 +106,9 @@ class ApiCallController @Inject() (
 
   def getRecommendedTracks(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
-      val topTracks: Option[TrackList] = Await.result(cache.get[TrackList]("topTracks"), Duration.Inf)
+      val topTracks: Option[TrackList] = Await.result(cache.get[TrackList](topTracksCacheKey), Duration.Inf)
       val recommendedTracks: Option[Recommendations] =
-        Await.result(cache.get[Recommendations]("recommendedTracks"), Duration.Inf)
+        Await.result(cache.get[Recommendations](recommendedTracksCacheKey), Duration.Inf)
 
       (topTracks, recommendedTracks) match {
         case (Some(tracks), Some(recommendations)) =>

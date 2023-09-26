@@ -7,7 +7,7 @@ import models.{AccessToken, Error, ErrorDetails, Recommendations, Track, TrackLi
 import play.api.cache.AsyncCacheApi
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc._
-import utils.StringConstants.{myTopTracksEndpoint, recommendationsEndpoint, tokenKey}
+import utils.StringConstants.{myTopTracksEndpoint, recommendationsEndpoint, tokenKey, recommendedTracksCacheKey, topTracksCacheKey}
 
 import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{Await, Future}
@@ -50,7 +50,7 @@ object Functions extends Results {
     (error, topTracksDecoded) match {
       case (Right(error), _) => Left(error)
       case (_, Right(trackList)) =>
-        Await.result(cache.set("topTracks", trackList), Duration.Inf)
+        Await.result(cache.set(topTracksCacheKey,  trackList), Duration.Inf)
         Right(Done)
       case _ => Left(Error(ErrorDetails(500, "Couldn't decode response as a known error or track list")))
     }
@@ -79,7 +79,7 @@ object Functions extends Results {
     recommendations match {
       case Left(decodingError) => Left(Error(ErrorDetails(500, decodingError.getMessage)))
       case Right(recommendations) =>
-        Await.result(cache.set("recommendedTracks", recommendations), Duration.Inf)
+        Await.result(cache.set(recommendedTracksCacheKey, recommendations), Duration.Inf)
         Right(Done)
     }
   }

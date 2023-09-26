@@ -34,4 +34,6 @@ object StringConstants {
   val lengthOfCodeVerifier = 128
   val sha256 = "SHA-256"
   val tokenKey = "token"
+  val topTracksCacheKey = "topTracks"
+  val recommendedTracksCacheKey = "recommendedTracks"
 }
