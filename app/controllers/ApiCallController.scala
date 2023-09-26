@@ -4,8 +4,9 @@ import io.circe
 import io.circe._
 import io.circe.parser._
 import javax.inject.Inject
-import models.{Artist, ArtistList, Error, ErrorDetails, Recommendations, TrackList}
+import models.{ArtistList, Error, ErrorDetails, Recommendations, TrackList}
 import play.api.cache._
+import play.api.libs.json
 import play.api.libs.ws._
 import play.api.mvc._
 import utils.Functions._
@@ -20,13 +21,8 @@ class ApiCallController @Inject() (
     val controllerComponents: ControllerComponents
 ) extends BaseController {
 
-  implicit val implicitWs = ws
-
-  //TODO set recommended tracks using a cache like this:
-  //TODO remove
-//  val result: Future[Done]         = cache.set("item.key", 2)
-//  val futureMaybeUser: Option[Int] = Await.result(cache.get[Int]("item.key"), Duration.Inf)
-//  println("future maybe user", futureMaybeUser)
+  implicit val implicitWs    = ws
+  implicit val implicitCache = cache
 
   def processResponse[T: Manifest](
       responseBody: String
@@ -38,40 +34,10 @@ class ApiCallController @Inject() (
         redirectToAuthorize
       }
       case (Right(Error(ErrorDetails(_, message))), _) => InternalServerError(message)
-      case (_, Right(data: T))                         => Ok(views.html.showArtist(title, dataToStringSeq(data)))
+      case (_, Right(data: T))                         => Ok(views.html.showListData(title, dataToStringSeq(data)))
       case _                                           => InternalServerError("Response couldn't be decoded as an error or artist details...")
     }
   }
-
-  def findArtist(accessToken: String, artist: String): Action[AnyContent] =
-    Action { implicit request: Request[AnyContent] =>
-      {
-        def searchURL(query: String) =
-          s"${searchApi("Miles Davis&type=artist")}" //"remaster%2520track%3ADoxy%2520artist%3AMies%2520Davis&type=album")}"
-        def searchRequest(query: String) =
-          hitApi(searchURL(""), accessToken) //todo remove hardcoding
-        def searchResponse(query: String): Future[WSResponse] =
-          searchRequest("").get()
-
-        Ok(views.html.search("")) //response.body
-      }
-    }
-
-  def getArtist(artistId: String): Action[AnyContent] =
-    Action { implicit request: Request[AnyContent] =>
-      {
-
-        val accessToken: String = getAccessTokenUnsafe(request)
-
-        def getArtistURL(artistId: String) = s"$getArtistEndpoint/$artistId"
-        def artistRequest(artistId: String): WSRequest =
-          hitApi(getArtistURL(artistId), accessToken)
-        def artistResponse(artistId: String): Future[WSResponse] =
-          artistRequest(artistId).get()
-
-        processResponse[Artist]("")("Get Artist", Artist.convertToStringSeq)
-      }
-    }
 
   def getMyTopArtists(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
@@ -97,8 +63,7 @@ class ApiCallController @Inject() (
 
   def getMyTopTracks(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
-      val accessToken: Option[String] = getAccessToken(request)
-      accessToken.fold(redirectToAuthorize) { token =>
+      getAccessToken.fold(redirectToAuthorize) { token =>
         val topTracksString = getTopTracks(token)
         processResponse[TrackList](topTracksString)("Your Top Tracks", TrackList.convertToStringSeq)
       }
@@ -106,9 +71,9 @@ class ApiCallController @Inject() (
 
   def getRecommendedTracks(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
-      val topTracks: Option[TrackList] = Await.result(cache.get[TrackList](topTracksCacheKey), Duration.Inf)
-      val recommendedTracks: Option[Recommendations] =
-        Await.result(cache.get[Recommendations](recommendedTracksCacheKey), Duration.Inf)
+
+      val topTracks: Option[TrackList]               = getCache[TrackList](topTracksCacheKey)
+      val recommendedTracks: Option[Recommendations] = getCache[Recommendations](recommendedTracksCacheKey)
 
       (topTracks, recommendedTracks) match {
         case (Some(tracks), Some(recommendations)) =>
@@ -116,31 +81,18 @@ class ApiCallController @Inject() (
         //TODO add better handling
         case _ => InternalServerError("Could not fetch cached results for top tracks or recommendations")
       }
-
     }
 
   def saveTrack(trackId: String): Action[AnyContent] =
     Action { implicit request =>
       getAccessToken.fold(redirectToAuthorize) { token =>
-        val params = Map(
-          "ids" -> trackId.trim
-        )
-        import play.api.libs.json._
-        val data = Json.obj(
+        val data = json.Json.obj(
           "ids" -> Seq(trackId.trim)
         )
-        val joinedParams = joinURLParameters(params)
-        val endpoint     = s"$myTracksEndpoint"
-        val responseFuture: Future[WSResponse] = hitApi(endpoint, token)
+
+        hitApi(myTracksEndpoint, token)
           .addHttpHeaders("Content-Type" -> "application/json")
           .put(data)
-
-        //TODO remove
-        val result = Await.result(responseFuture, Duration.Inf)
-        println("trying to save song")
-        println(data)
-        println("result body")
-        println(result.status)
 
         Redirect(routes.ApiCallController.getRecommendedTracks())
       }

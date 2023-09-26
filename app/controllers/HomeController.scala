@@ -18,8 +18,8 @@ import scala.concurrent.duration.Duration
   * application's home page.
   */
 @Singleton
-class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, cc: ControllerComponents)
-    extends AbstractController(cc)
+class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controllerComponents: ControllerComponents)
+    extends BaseController
     with I18nSupport {
 
   implicit val implicitCache: AsyncCacheApi = cache
