@@ -1,5 +1,3 @@
-@(artistIdForm: Form[ArtistId])(implicit messages: Messages)
-
 @main("Welcome") {
 @defining(play.core.PlayVersion.current) { version =>
 
@@ -15,13 +13,6 @@
       <p>
         <button onclick="location.href = '/recommendations';">Recommend Me Tracks!</button>
       </p>
-      <p>
-        @helper.form(action = routes.ApiCallController.getArtist("")) {
-        @helper.inputText(artistIdForm("artistId"))
-        <input type="submit" value="Search this artist">
-        }
-      </p>
-      <p>
     </article>
     <aside>
       @commonSidebar()

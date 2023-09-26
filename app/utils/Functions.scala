@@ -7,15 +7,26 @@ import models.{AccessToken, Error, ErrorDetails, Recommendations, Track, TrackLi
 import play.api.cache.AsyncCacheApi
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc._
-import utils.StringConstants.{myTopTracksEndpoint, recommendationsEndpoint, tokenKey, recommendedTracksCacheKey, topTracksCacheKey}
+import utils.StringConstants.{
+  myTopTracksEndpoint,
+  recommendationsEndpoint,
+  tokenKey,
+  recommendedTracksCacheKey,
+  topTracksCacheKey
+}
 
 import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{Await, Future}
+import scala.reflect.ClassTag
 
 object Functions extends Results {
 
-  def redirectToAuthorize: Result                                     = Redirect(controllers.routes.AuthorizationController.authorize())
-  def getAccessToken(implicit request: RequestHeader): Option[String] = request.session.get(tokenKey)
+  def redirectToAuthorize: Result                                        = Redirect(controllers.routes.AuthorizationController.authorize())
+  def getAccessToken(implicit request: RequestHeader): Option[String]    = request.session.get(tokenKey)
+
+  def getCache[T: ClassTag](key: String)(implicit cache: AsyncCacheApi): Option[T] = Await.result(cache.get[T](key), Duration.Inf)
+  def setCache[T](key: String, data: T)(implicit cache: AsyncCacheApi): Done =
+    Await.result(cache.set(key, data), Duration.Inf)
 
   //TODO remove
   def getAccessTokenUnsafe(request: RequestHeader): String =
@@ -50,7 +61,7 @@ object Functions extends Results {
     (error, topTracksDecoded) match {
       case (Right(error), _) => Left(error)
       case (_, Right(trackList)) =>
-        Await.result(cache.set(topTracksCacheKey,  trackList), Duration.Inf)
+        setCache(topTracksCacheKey, trackList)
         Right(Done)
       case _ => Left(Error(ErrorDetails(500, "Couldn't decode response as a known error or track list")))
     }
@@ -79,7 +90,7 @@ object Functions extends Results {
     recommendations match {
       case Left(decodingError) => Left(Error(ErrorDetails(500, decodingError.getMessage)))
       case Right(recommendations) =>
-        Await.result(cache.set(recommendedTracksCacheKey, recommendations), Duration.Inf)
+        setCache(recommendedTracksCacheKey, recommendations)
         Right(Done)
     }
   }

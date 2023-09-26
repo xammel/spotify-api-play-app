@@ -8,7 +8,7 @@ import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import utils.Functions.{cacheRecommendedTracks, cacheTopTracks, getAccessToken, redirectToAuthorize}
+import utils.Functions.{cacheRecommendedTracks, cacheTopTracks, getAccessToken, redirectToAuthorize, getCache}
 import utils.StringConstants.topTracksCacheKey
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -32,7 +32,7 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, cc: Controll
       }
     }
 
-  def home(artistIdForm: Form[ArtistId] = ArtistId.artistIdForm.bind(Map("artistId" -> ""))): Action[AnyContent] =
+  def home(): Action[AnyContent] =
     Action { implicit request: RequestHeader =>
       getAccessToken.fold(redirectToAuthorize) { token =>
         implicit val accessToken: AccessToken = AccessToken(token)
@@ -43,7 +43,7 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, cc: Controll
           case Left(Error(ErrorDetails(401, _))) => redirectToAuthorize
           case Left(error)                       => InternalServerError(error.error.message)
           case Right(_) => {
-            val topTracks: Option[TrackList] = Await.result(cache.get[TrackList](topTracksCacheKey), Duration.Inf)
+            val topTracks: Option[TrackList] = getCache[TrackList](topTracksCacheKey)
             topTracks match {
               case None => InternalServerError("Could not fetch cached top tracks")
               case Some(tracks) =>
@@ -51,7 +51,7 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, cc: Controll
                 cacheRecommendedTracksResult match {
                   case Left(Error(ErrorDetails(401, _))) => redirectToAuthorize
                   case Left(error)                       => InternalServerError(error.error.message)
-                  case Right(_)                          => Ok(views.html.home(artistIdForm))
+                  case Right(_)                          => Ok(views.html.home())
                 }
             }
           }
