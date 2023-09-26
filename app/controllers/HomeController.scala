@@ -42,9 +42,6 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, cc: Controll
     Action { implicit request: RequestHeader =>
       val accessTokenOpt: Option[String] = getAccessToken
 
-      //TODO remove
-      println("access token thing", accessTokenOpt)
-
       accessTokenOpt.fold(redirectToAuthorize) { token =>
         implicit val accessToken: AccessToken = AccessToken(token)
 

@@ -15,9 +15,11 @@
                 @recommendations.map{ track =>
             <li>@track.name by @track.artists.map(_.name).mkString(" & ")</li>
 
-            <form action="@routes.ApiCallController.saveTrack(track.id)" method="post">
+<!--            <form action="@routes.ApiCallController.saveTrack("123")" method="get">-->
+            <a href="/save-track?trackId=@track.id">
                 <button class="btn btn-primary">Save Track!</button>
-            </form>
+            </a>
+<!--            </form>-->
 
             <iframe style="border-radius:12px"
                     src=@("https://open.spotify.com/embed/track/" + track.id + "?utm_source=generator")

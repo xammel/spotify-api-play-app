@@ -21,6 +21,7 @@ object StringConstants {
   val myTopArtistsEndpoint = s"$meTopEndpoint/artists"
   val myTopTracksEndpoint = s"$meTopEndpoint/tracks"
   val recommendationsEndpoint = s"$https/$apiSpotify/recommendations"
+  val myTracksEndpoint = s"$https/$apiSpotify/me/tracks"
 
   //Local URLs
   val localhost = "localhost:9000"

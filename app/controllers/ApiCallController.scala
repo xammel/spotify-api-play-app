@@ -21,13 +21,13 @@ class ApiCallController @Inject() (
     val controllerComponents: ControllerComponents
 ) extends BaseController {
 
-  val hitApiWithClient = hitApi(ws)(_, _)
+  val hitApiWithClient: (String, String) => WSRequest = hitApi(ws)(_, _)
 
   //TODO set recommended tracks using a cache like this:
   //TODO remove
-  val result: Future[Done]         = cache.set("item.key", 2)
-  val futureMaybeUser: Option[Int] = Await.result(cache.get[Int]("item.key"), Duration.Inf)
-  println("future maybe user", futureMaybeUser)
+//  val result: Future[Done]         = cache.set("item.key", 2)
+//  val futureMaybeUser: Option[Int] = Await.result(cache.get[Int]("item.key"), Duration.Inf)
+//  println("future maybe user", futureMaybeUser)
 
   def processResponse[T: Manifest](
       responseBody: String
@@ -36,8 +36,6 @@ class ApiCallController @Inject() (
     val data: Either[circe.Error, T]      = decode[T](responseBody)
     (error, data) match {
       case (Right(Error(ErrorDetails(401, _))), _) => {
-        //TODO remove
-        println("inside processResponse redirect")
         redirectToAuthorize
       }
       case (Right(Error(ErrorDetails(_, message))), _) => InternalServerError(message)
@@ -113,10 +111,6 @@ class ApiCallController @Inject() (
       val recommendedTracks: Option[Recommendations] =
         Await.result(cache.get[Recommendations]("recommendedTracks"), Duration.Inf)
 
-      //TODO remove
-      println("inside reccs")
-      println(topTracks, recommendedTracks)
-
       (topTracks, recommendedTracks) match {
         case (Some(tracks), Some(recommendations)) =>
           Ok(views.html.recommendations(tracks.items, recommendations.tracks))
@@ -127,9 +121,31 @@ class ApiCallController @Inject() (
 
   def saveTrack(trackId: String): Action[AnyContent] =
     Action { implicit request =>
-      //TODO remove
-      println(trackId)
-      Continue
+      getAccessToken.fold(redirectToAuthorize) { token =>
+
+        val params = Map(
+          "ids" -> trackId.trim
+        )
+        import play.api.libs.json._
+        val data = Json.obj(
+          "ids" -> Seq(trackId.trim)
+        )
+        val joinedParams                       = joinURLParameters(params)
+        val endpoint                           = s"$myTracksEndpoint"//?$joinedParams"
+        val responseFuture: Future[WSResponse] = hitApiWithClient(endpoint, token)
+          .addHttpHeaders("Content-Type" -> "application/json")
+            .put(data)
+//          .a("data" -> "application/json")
+
+        //TODO remove
+        val result = Await.result(responseFuture, Duration.Inf)
+        println("trying to save song")
+        println(data)
+        println("result body")
+        println(result.body)
+
+        Redirect(routes.ApiCallController.getRecommendedTracks())
+      }
     }
 
 }

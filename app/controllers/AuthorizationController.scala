@@ -49,7 +49,7 @@ class AuthorizationController @Inject()(
     val params = Map(
       "response_type" -> "code",
       "client_id" -> clientId,
-      "scope" -> "user-read-private user-read-email user-top-read",
+      "scope" -> "user-read-private user-read-email user-top-read user-library-modify",
       "redirect_uri" -> authorizationCallback,
       "code_challenge_method" -> "S256",
       "code_challenge" -> codeChallenge

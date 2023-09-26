@@ -48,10 +48,6 @@ object Functions extends Results {
     val error: Either[circe.Error, Error]                = decode[Error](topTracksRaw)
     val topTracksDecoded: Either[circe.Error, TrackList] = decode[TrackList](topTracksRaw)
 
-    //TODO remove
-    println("cache top tracks")
-    println(error, topTracksDecoded)
-
     (error, topTracksDecoded) match {
       case (Right(error), _) => Left(error)
       case (_, Right(trackList)) =>
