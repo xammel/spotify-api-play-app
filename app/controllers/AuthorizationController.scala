@@ -11,7 +11,7 @@ import models.AccessToken
 import play.api.libs.ws._
 import play.api.mvc._
 import utils.Functions.joinURLParameters
-import utils.StringConstants.{tokenKey, _}
+import utils.StringConstants._
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
@@ -37,11 +37,11 @@ class AuthorizationController @Inject() (
   }
 
   def generateCodeChallenge(codeVerifier: String): String = {
-      val encoder: MessageDigest         = MessageDigest.getInstance(sha256)
-      val codeVerifierBytes: Array[Byte] = codeVerifier.getBytes(StandardCharsets.UTF_8)
-      val data: Array[Byte]              = encoder.digest(codeVerifierBytes)
-      base64Encode(data)
-    }
+    val encoder: MessageDigest         = MessageDigest.getInstance(sha256)
+    val codeVerifierBytes: Array[Byte] = codeVerifier.getBytes(StandardCharsets.UTF_8)
+    val data: Array[Byte]              = encoder.digest(codeVerifierBytes)
+    base64Encode(data)
+  }
 
   def authorize(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
@@ -61,7 +61,6 @@ class AuthorizationController @Inject() (
 
   def callback(code: String): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
-
       val params = Map(
         "grant_type"    -> "authorization_code",
         "code"          -> code,

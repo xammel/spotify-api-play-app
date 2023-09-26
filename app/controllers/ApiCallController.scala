@@ -41,8 +41,7 @@ class ApiCallController @Inject() (
 
   def getMyTopArtists(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
-      val accessToken: Option[String] = getAccessToken(request)
-      accessToken.fold(redirectToAuthorize) { token =>
+      getAccessToken.fold(redirectToAuthorize) { token =>
         val responseFuture: Future[WSResponse] = hitApi(myTopArtistsEndpoint, token).get()
         val response: WSResponse               = Await.result(responseFuture, Duration.Inf)
         processResponse[ArtistList](response.body)("Your Top Artists", ArtistList.convertToStringSeq)
@@ -71,7 +70,6 @@ class ApiCallController @Inject() (
 
   def getRecommendedTracks(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
-
       val topTracks: Option[TrackList]               = getCache[TrackList](topTracksCacheKey)
       val recommendedTracks: Option[Recommendations] = getCache[Recommendations](recommendedTracksCacheKey)
 

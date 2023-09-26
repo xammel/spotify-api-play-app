@@ -4,14 +4,11 @@ import akka.Done
 import javax.inject._
 import models._
 import play.api.cache.AsyncCacheApi
-import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import utils.Functions.{cacheRecommendedTracks, cacheTopTracks, getAccessToken, redirectToAuthorize, getCache}
+import utils.Functions._
 import utils.StringConstants.topTracksCacheKey
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 /**
   * This controller creates an `Action` to handle HTTP requests to the

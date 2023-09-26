@@ -2,8 +2,6 @@ package models
 
 import io.circe._
 import io.circe.generic.semiauto._
-import play.api.data.Form
-import play.api.data.Forms._
 
 trait JsonResponse[T] {
   implicit val decoder: Decoder[T]
@@ -16,15 +14,6 @@ object AccessToken {
   implicit val accessTokenDecoder: Decoder[AccessToken] = deriveDecoder[AccessToken]
 }
 
-case class ArtistId(artistId: String)
-
-object ArtistId {
-  val artistIdForm = Form(
-    mapping("artistId" -> text)(ArtistId.apply)(ArtistId.unapply)
-  )
-}
-
-// { "error": { "status": 401, "message": "Invalid access token" } }
 case class Error(error: ErrorDetails)
 
 object Error {
@@ -73,7 +62,7 @@ object TrackList extends JsonResponse[TrackList] {
   def convertToStringSeq(trackList: TrackList): Seq[String] = trackList.items.flatMap(Track.convertToStringSeq)
 }
 
-case class Recommendations(seeds: Seq[RecommendationSeed], tracks: Seq[Track]) // seeds: Seq[RecommendationSeedObject],
+case class Recommendations(seeds: Seq[RecommendationSeed], tracks: Seq[Track])
 
 object Recommendations extends JsonResponse[Recommendations] {
   implicit val decoder: Decoder[Recommendations] = deriveDecoder[Recommendations]

@@ -20,6 +20,5 @@ lazy val root = (project in file("."))
       "io.circe" %% "circe-generic",
       "io.circe" %% "circe-parser"
     ).map(_ % circeVersion),
-    scalacOptions ++= Seq("-feature", "-deprecation", "-Xfatal-warnings"),
-    routesImport += "models.Binders"
+    scalacOptions ++= Seq("-feature", "-deprecation", "-Xfatal-warnings")
   )

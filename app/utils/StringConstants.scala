@@ -4,21 +4,21 @@ object StringConstants {
 
   // URL beginnings
   val https = "https:/"
-  val http = "http:/"
+  val http  = "http:/"
 
   // Spotify URLs
-  val apiSpotify = "api.spotify.com/v1"
-  val accountsSpotify = "accounts.spotify.com"
-  val authorizeEndpoint = s"$https/$accountsSpotify/authorize?"
-  val apiTokenEndpoint = s"$https/$accountsSpotify/api/token"
-  val meTopEndpoint = s"$https/$apiSpotify/me/top"
-  val myTopArtistsEndpoint = s"$meTopEndpoint/artists"
-  val myTopTracksEndpoint = s"$meTopEndpoint/tracks"
+  val apiSpotify              = "api.spotify.com/v1"
+  val accountsSpotify         = "accounts.spotify.com"
+  val authorizeEndpoint       = s"$https/$accountsSpotify/authorize?"
+  val apiTokenEndpoint        = s"$https/$accountsSpotify/api/token"
+  val meTopEndpoint           = s"$https/$apiSpotify/me/top"
+  val myTopArtistsEndpoint    = s"$meTopEndpoint/artists"
+  val myTopTracksEndpoint     = s"$meTopEndpoint/tracks"
   val recommendationsEndpoint = s"$https/$apiSpotify/recommendations"
-  val myTracksEndpoint = s"$https/$apiSpotify/me/tracks"
+  val myTracksEndpoint        = s"$https/$apiSpotify/me/tracks"
 
   // Local URLs
-  val localhost = "localhost:9000"
+  val localhost             = "localhost:9000"
   val authorizationCallback = s"$http/$localhost/authorization-callback"
 
   // Credentials
@@ -26,10 +26,10 @@ object StringConstants {
 
   // Constants
   val lengthOfCodeVerifier = 128
-  val sha256 = "SHA-256"
-  val tokenKey = "token"
+  val sha256               = "SHA-256"
+  val tokenKey             = "token"
 
   // Cache keys
-  val topTracksCacheKey = "topTracks"
+  val topTracksCacheKey         = "topTracks"
   val recommendedTracksCacheKey = "recommendedTracks"
 }

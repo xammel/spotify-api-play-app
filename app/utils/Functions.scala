@@ -7,15 +7,9 @@ import models.{AccessToken, Error, ErrorDetails, Recommendations, Track, TrackLi
 import play.api.cache.AsyncCacheApi
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc._
-import utils.StringConstants.{
-  myTopTracksEndpoint,
-  recommendationsEndpoint,
-  tokenKey,
-  recommendedTracksCacheKey,
-  topTracksCacheKey
-}
+import utils.StringConstants._
 
-import scala.concurrent.duration.{Duration, _}
+import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.reflect.ClassTag
 
