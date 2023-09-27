@@ -49,11 +49,7 @@ class ApiCallController @Inject() (
     }
 
   def getTopTracks(accessToken: String): String = {
-    val params = Map(
-      "time_range" -> "short_term", // short_term = last 4 weeks, medium_term = last 6 months, long_term = all time
-      "limit"      -> "20" // Number of tracks to return
-    )
-    val joinedParams                       = joinURLParameters(params)
+    val joinedParams                       = joinURLParameters(topTracksParams)
     val endpoint                           = s"$myTopTracksEndpoint?$joinedParams"
     val responseFuture: Future[WSResponse] = hitApi(endpoint, accessToken).get()
     val response: WSResponse               = Await.result(responseFuture, Duration.Inf)
@@ -76,8 +72,7 @@ class ApiCallController @Inject() (
       (topTracks, recommendedTracks) match {
         case (Some(tracks), Some(recommendations)) =>
           Ok(views.html.recommendations(tracks.items, recommendations.tracks))
-        //TODO add better handling
-        case _ => InternalServerError("Could not fetch cached results for top tracks or recommendations")
+        case _ => Redirect(routes.HomeController.home())
       }
     }
 

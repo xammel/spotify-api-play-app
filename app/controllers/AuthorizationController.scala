@@ -46,30 +46,15 @@ class AuthorizationController @Inject() (
   def authorize(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
       val codeChallenge: String = generateCodeChallenge(codeVerifier)
-      val params = Map(
-        "response_type"         -> "code",
-        "client_id"             -> clientId,
-        "scope"                 -> "user-read-private user-read-email user-top-read user-library-modify",
-        "redirect_uri"          -> authorizationCallback,
-        "code_challenge_method" -> "S256",
-        "code_challenge"        -> codeChallenge
-      )
-      val joinedParams = joinURLParameters(params)
+      val joinedParams = joinURLParameters(authorizeParams(codeChallenge))
       val url          = s"$authorizeEndpoint$joinedParams"
       Redirect(url)
     }
 
   def callback(code: String): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
-      val params = Map(
-        "grant_type"    -> "authorization_code",
-        "code"          -> code,
-        "redirect_uri"  -> authorizationCallback,
-        "client_id"     -> clientId,
-        "code_verifier" -> codeVerifier
-      )
 
-      val joinedParams = joinURLParameters(params)
+      val joinedParams = joinURLParameters(callbackParams(code, codeVerifier))
 
       val hitURL: Future[WSResponse] = ws
         .url(apiTokenEndpoint)

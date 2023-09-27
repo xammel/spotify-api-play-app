@@ -8,7 +8,7 @@ import play.api.cache.AsyncCacheApi
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc._
 import utils.StringConstants._
-import play.twirl.api.HtmlFormat
+
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.reflect.ClassTag
@@ -31,11 +31,7 @@ object Functions extends Results {
   def joinURLParameters(params: Map[String, String]): String = params.map { case (k, v) => s"$k=$v" }.mkString("&")
 
   def cacheTopTracks(implicit accessToken: AccessToken, ws: WSClient, cache: AsyncCacheApi): Either[Error, Done] = {
-    val params = Map(
-      "time_range" -> "short_term", // short_term = last 4 weeks, medium_term = last 6 months, long_term = all time
-      "limit"      -> "20" // Number of tracks to return
-    )
-    val joinedParams                                     = joinURLParameters(params)
+    val joinedParams                                     = joinURLParameters(topTracksParams)
     val endpoint                                         = s"$myTopTracksEndpoint?$joinedParams"
     val responseFuture: Future[WSResponse]               = hitApi(endpoint, accessToken.access_token).get()
     val topTracksRaw: String                             = Await.result(responseFuture, Duration.Inf).body
@@ -60,11 +56,8 @@ object Functions extends Results {
     val seedTracks: Seq[Track] = topTracks.items.take(5)
 
     val seedTrackIds = seedTracks.map(_.id)
-    val params = Map(
-      "limit"       -> "10", // number of recommendations to return
-      "seed_tracks" -> seedTrackIds.mkString(",")
-    )
-    val joinedParams                       = joinURLParameters(params)
+
+    val joinedParams                       = joinURLParameters(recommendationsParams(seedTrackIds))
     val endpoint                           = s"$recommendationsEndpoint?$joinedParams"
     val responseFuture: Future[WSResponse] = hitApi(endpoint, token).get()
     val recommendationsJson: String        = Await.result(responseFuture, Duration.Inf).body

@@ -32,4 +32,35 @@ object StringConstants {
   // Cache keys
   val topTracksCacheKey         = "topTracks"
   val recommendedTracksCacheKey = "recommendedTracks"
+
+  // Http Request Parameters
+  val topTracksParams = Map(
+    "time_range" -> "short_term", // short_term = last 4 weeks, medium_term = last 6 months, long_term = all time
+    "limit"      -> "20" // Number of tracks to return
+  )
+
+  def callbackParams(code: String, codeVerifier: String) =
+    Map(
+      "grant_type"    -> "authorization_code",
+      "code"          -> code,
+      "redirect_uri"  -> authorizationCallback,
+      "client_id"     -> clientId,
+      "code_verifier" -> codeVerifier
+    )
+
+  def authorizeParams(codeChallenge: String) =
+    Map(
+      "response_type"         -> "code",
+      "client_id"             -> clientId,
+      "scope"                 -> "user-read-private user-read-email user-top-read user-library-modify",
+      "redirect_uri"          -> authorizationCallback,
+      "code_challenge_method" -> "S256",
+      "code_challenge"        -> codeChallenge
+    )
+
+  def recommendationsParams(seedTrackIds: Seq[String]) =
+    Map(
+      "limit"       -> "10", // number of recommendations to return
+      "seed_tracks" -> seedTrackIds.mkString(",")
+    )
 }
