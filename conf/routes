@@ -12,6 +12,7 @@ GET     /artists                            controllers.ApiCallController.getMyT
 GET     /tracks                             controllers.ApiCallController.getMyTopTracks()
 GET     /recommendations                    controllers.ApiCallController.getRecommendedTracks()
 GET     /save                               controllers.ApiCallController.saveTrack(trackId)
+GET     /refresh-recommendations            controllers.ApiCallController.refreshRecommendations()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

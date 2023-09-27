@@ -24,9 +24,7 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controll
 
   def index() =
     Action { implicit request: Request[AnyContent] =>
-      getAccessToken.fold(redirectToAuthorize) { _ =>
-        Redirect(routes.HomeController.home())
-      }
+      getAccessToken.fold(redirectToAuthorize)(_ => Redirect(routes.HomeController.home()))
     }
 
   def home(): Action[AnyContent] =

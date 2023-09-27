@@ -4,7 +4,7 @@ import io.circe
 import io.circe._
 import io.circe.parser._
 import javax.inject.Inject
-import models.{ArtistList, Error, ErrorDetails, Recommendations, TrackList}
+import models.{AccessToken, ArtistList, Error, ErrorDetails, Recommendations, TrackList}
 import play.api.cache._
 import play.api.libs.json
 import play.api.libs.ws._
@@ -93,6 +93,20 @@ class ApiCallController @Inject() (
           .put(data)
 
         Redirect(routes.ApiCallController.getRecommendedTracks())
+      }
+    }
+
+  def refreshRecommendations(): Action[AnyContent] =
+    Action { implicit request =>
+      getAccessToken.fold(redirectToAuthorize) { token =>
+        implicit val accessToken = AccessToken(token)
+
+        getCache[TrackList](topTracksCacheKey) match {
+          case None => InternalServerError("Cannot retrieve top tracks from cache")
+          case Some(tracks) =>
+            cacheRecommendedTracks(tracks)
+            Redirect(routes.ApiCallController.getRecommendedTracks())
+        }
       }
     }
 

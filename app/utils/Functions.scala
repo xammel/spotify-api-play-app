@@ -8,7 +8,7 @@ import play.api.cache.AsyncCacheApi
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc._
 import utils.StringConstants._
-
+import play.twirl.api.HtmlFormat
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.reflect.ClassTag
@@ -80,5 +80,4 @@ object Functions extends Results {
       case _ => Left(Error(ErrorDetails(500, "Couldn't decode response as a known error or recommended tracks")))
     }
   }
-
 }
