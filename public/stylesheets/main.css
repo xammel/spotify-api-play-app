@@ -125,5 +125,5 @@
  dd.info{color:#888;font-size:12px;}
  dd.error{color:#c00;}
  aside a[href^="http"]:after,.doc a[href^="http"]:after{content:url(/assets/images/external.png);vertical-align:middle;margin-left:5px;}
- img.resize{width:100px;float:left;}
+ img.resize{width:85px;float:left;}
  

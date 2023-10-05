@@ -32,7 +32,7 @@ object Artist extends JsonResponse[Artist] {
 
   implicit val decoder: Decoder[Artist] = deriveDecoder[Artist]
 
-  override def convertToStringSeq(artist: Artist): Seq[String] = Seq(s"Name: ${artist.name}, ID: ${artist.id}")
+  override def convertToStringSeq(artist: Artist): Seq[String] = Seq(artist.name)
 }
 
 case class ArtistList(items: Seq[Artist])

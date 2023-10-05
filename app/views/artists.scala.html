@@ -1,0 +1,16 @@
+@(title: String, dataToDisplay: Seq[String])
+
+@main(title) {
+<section id="content">
+    <div class="wrapper">
+        <article>
+            <h1>@title</h1>
+            @dataToDisplay.zipWithIndex.map{ case (bullet, index) =>
+                <p>@(index + 1)</p>
+                <p>@bullet</p>
+                <br>
+            }
+        </article>
+    </div>
+</section>
+}

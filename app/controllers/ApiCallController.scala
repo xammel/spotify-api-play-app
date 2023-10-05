@@ -24,7 +24,7 @@ class ApiCallController @Inject() (
   implicit val implicitWs    = ws
   implicit val implicitCache = cache
 
-  def processResponse[T: Manifest](
+  private def processResponse[T: Manifest](
       responseBody: String
   )(title: String, dataToStringSeq: T => Seq[String])(implicit decoder: Decoder[T]) = {
     val error: Either[circe.Error, Error] = decode[Error](responseBody)
@@ -34,7 +34,7 @@ class ApiCallController @Inject() (
         redirectToAuthorize
       }
       case (Right(Error(ErrorDetails(_, message))), _) => InternalServerError(message)
-      case (_, Right(data: T))                         => Ok(views.html.showListData(title, dataToStringSeq(data)))
+      case (_, Right(data: T))                         => Ok(views.html.artists(title, dataToStringSeq(data)))
       case _                                           => InternalServerError("Response couldn't be decoded as an error or artist details...")
     }
   }
