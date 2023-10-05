@@ -1,9 +1,8 @@
 @main("Welcome") {
 @defining(play.core.PlayVersion.current) { version =>
 
-<section id="content">
-  <div class="wrapper doc">
-    <article>
+<section id="home-content">
+  <div class="wrapper">
       <p>
         <button class="button" onclick="location.href = '/artists';">My Top Artists</button>
       </p>
@@ -13,10 +12,6 @@
       <p>
         <button class="button" onclick="location.href = '/recommendations';">Recommend Me Tracks!</button>
       </p>
-    </article>
-    <aside>
-      @commonSidebar()
-    </aside>
   </div>
 </section>
 }

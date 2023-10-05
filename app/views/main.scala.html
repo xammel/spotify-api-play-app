@@ -1,9 +1,9 @@
 @*
- * This template is called from the `index` template. This template
- * handles the rendering of the page header and body tags. It takes
- * two arguments, a `String` for the title of the page and an `Html`
- * object to insert into the body of the page.
- *@
+* This template is called from the `index` template. This template
+* handles the rendering of the page header and body tags. It takes
+* two arguments, a `String` for the title of the page and an `Html`
+* object to insert into the body of the page.
+*@
 @(title: String)(content: Html)
 
 <!DOCTYPE html>
@@ -19,13 +19,15 @@
 </head>
 
 <body>
-    <section id="top">
-        <div class="wrapper">
-            <img class="resize" src="assets/images/spotify-logo-black.png" alt="logo" />
+<section id="top">
+    <div class="wrapper">
+        <div class="banner">
+            <img class="resize" src="assets/images/spotify-logo-black.png"/>
             <h1>Spotify API App</h1>
         </div>
-    </section>
-    @content
+    </div>
+</section>
+@content
 </body>
 
 </html>
