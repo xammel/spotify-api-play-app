@@ -87,7 +87,9 @@ class ApiCallController @Inject() (
           .addHttpHeaders("Content-Type" -> "application/json")
           .put(data)
 
-        Redirect(routes.ApiCallController.getRecommendedTracks())
+        Ok
+
+//        Redirect(routes.ApiCallController.getRecommendedTracks())
       }
     }
 

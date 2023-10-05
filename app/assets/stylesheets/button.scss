@@ -1,0 +1,20 @@
+.button {
+	-webkit-border-image: url("sp://import/img/info_group-button.png") 0 7 42 7;
+	background: initial;
+	border: initial;
+	border-width: 0 7px;
+	box-sizing: border-box;
+	color: #333;
+	cursor: default;
+	display: inline-block;
+	font-size: 12px;
+	line-height: 17px;
+	margin: 0;
+	max-width: 100%;
+	overflow: hidden;
+	padding: 2px;
+	text-decoration: none;
+	text-overflow: ellipsis;
+	text-shadow: 0 1px 0 #EEE;
+	white-space: nowrap;
+}
