@@ -1,16 +1,33 @@
-@(title: String, dataToDisplay: Seq[String])
+@(title: String, tracks: Seq[Track])
+
+@trackArtists(track: Track) = { @track.artists.map(_.name).mkString(" & ") }
 
 @main(title) {
 <section id="content">
     <div class="wrapper">
         <article>
             <h1>@title</h1>
-            @dataToDisplay.zipWithIndex.map{ case (bullet, index) =>
-            <h2>@(index + 1)</h2>
-            <span>
-                    <b>@bullet</b>
-                </span>
+
+            @tracks.zipWithIndex.map{ case (track, index) =>
+
+            <div class="parent-space">
+                <h2 class="left">@(index + 1)</h2>
+                <h2 class="center"></h2>
+                <h2 class="right">@track.name</h2>
+            </div>
+
+<!--            <h4>-->
+<!--                <div style="float:right;">@trackArtists(track)</div>-->
+<!--                <img style="float:left;" src="@(track.album.images.maxBy(_.width).url)">-->
+<!--                <div style="clear: left;"/>-->
+<!--            </h4>-->
+            <div>
+                <img class="album-image" src="@(track.album.images.maxBy(_.width).url)">
+                <span class="track-artist">@trackArtists(track)</span>
+            </div>
+
             <br>
+
             }
         </article>
     </div>

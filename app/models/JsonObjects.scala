@@ -35,12 +35,6 @@ object Artist extends JsonResponse[Artist] {
   override def convertToStringSeq(artist: Artist): Seq[String] = Seq(artist.name + artist.images.map(_.url))
 }
 
-case class ArtistLite(name: String)
-
-object ArtistLite {
-  implicit val decoder: Decoder[ArtistLite] = deriveDecoder[ArtistLite]
-}
-
 case class Image(height: Int, url: String, width: Int)
 
 object Image {
@@ -57,13 +51,25 @@ object ArtistList extends JsonResponse[ArtistList] {
     artists.items.flatMap(Artist.convertToStringSeq)
 }
 
-case class Track(name: String, artists: Seq[ArtistLite], id: String)
+case class Track(id: String, name: String, artists: Seq[ArtistLite], album: Album)
 
 object Track extends JsonResponse[Track] {
   implicit val decoder: Decoder[Track] = deriveDecoder[Track]
 
   def convertToStringSeq(track: Track): Seq[String] =
     Seq(s"${track.name} by ${track.artists.map(_.name).mkString(" & ")}")
+}
+
+case class ArtistLite(name: String)
+
+object ArtistLite {
+  implicit val decoder: Decoder[ArtistLite] = deriveDecoder[ArtistLite]
+}
+
+case class Album(images: Seq[Image])
+
+object Album {
+  implicit val decoder: Decoder[Album] = deriveDecoder[Album]
 }
 
 case class TrackList(items: Seq[Track])

@@ -1,11 +1,7 @@
 package controllers
 
 import io.circe
-import io.circe._
 import io.circe.parser._
-import models.TrackList.convertToStringSeq
-
-import javax.inject.Inject
 import models.{AccessToken, ArtistList, Error, ErrorDetails, Recommendations, TrackList}
 import play.api.cache._
 import play.api.libs.json
@@ -14,6 +10,7 @@ import play.api.mvc._
 import utils.Functions._
 import utils.StringConstants._
 
+import javax.inject.Inject
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
@@ -25,22 +22,6 @@ class ApiCallController @Inject() (
 
   implicit val implicitWs    = ws
   implicit val implicitCache = cache
-
-  //TODO remove
-//  private def processResponse[T: Manifest](
-//      responseBody: String
-//  )(title: String, dataToStringSeq: T => Seq[String])(implicit decoder: Decoder[T]) = {
-//    val error: Either[circe.Error, Error] = decode[Error](responseBody)
-//    val data: Either[circe.Error, T]      = decode[T](responseBody)
-//    (error, data) match {
-//      case (Right(Error(ErrorDetails(401, _))), _) => {
-//        redirectToAuthorize
-//      }
-//      case (Right(Error(ErrorDetails(_, message))), _) => InternalServerError(message)
-//      case (_, Right(data: T))                         => Ok(views.html.artists(title, dataToStringSeq(data)))
-//      case _                                           => InternalServerError("Response couldn't be decoded as an error or artist details...")
-//    }
-//  }
 
   def getMyTopArtists(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
@@ -57,7 +38,6 @@ class ApiCallController @Inject() (
           case (_, Right(artistList))                      => Ok(views.html.artists("Your Top Artists", artistList.items))
           case _                                           => InternalServerError("Response couldn't be decoded as an error or artist details...")
         }
-//        processResponse[ArtistList](response.body)("Your Top Artists", ArtistList.convertToStringSeq)
       }
     }
 
@@ -74,17 +54,19 @@ class ApiCallController @Inject() (
       getAccessToken.fold(redirectToAuthorize) { token =>
         val topTracksString                      = getTopTracks(token)
         val error: Either[circe.Error, Error]    = decode[Error](topTracksString)
-        val data: Either[circe.Error, TrackList] = decode[TrackList](topTracksString)
-        (error, data) match {
-          case (Right(Error(ErrorDetails(401, _))), _) => {
-            redirectToAuthorize
-          }
+        val errorOrTrackList: Either[circe.Error, TrackList] = decode[TrackList](topTracksString)
+
+        //TODO remove
+        println(topTracksString)
+
+
+        (error, errorOrTrackList) match {
+          case (Right(Error(ErrorDetails(401, _))), _)     => redirectToAuthorize
           case (Right(Error(ErrorDetails(_, message))), _) => InternalServerError(message)
           case (_, Right(trackList)) =>
-            Ok(views.html.tracks("Your Top Tracks", TrackList.convertToStringSeq(trackList)))
+            Ok(views.html.tracks("Your Top Tracks", trackList.items))
           case _ => InternalServerError("Response couldn't be decoded as an error or artist details...")
         }
-//        processResponse[TrackList](topTracksString)("Your Top Tracks", TrackList.convertToStringSeq)
       }
     }
 
@@ -113,7 +95,6 @@ class ApiCallController @Inject() (
 
         Ok
 
-//        Redirect(routes.ApiCallController.getRecommendedTracks())
       }
     }
 

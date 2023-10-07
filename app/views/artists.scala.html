@@ -15,7 +15,7 @@
             <p></p>
             } else {
             <div class="image-wrapper">
-                <img class="artist-profile" src="@(artist.images.head.url)">
+                <img class="artist-profile" src="@(artist.images.maxBy(_.width).url)">
             </div>
             }
             <br>
