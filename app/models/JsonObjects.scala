@@ -26,13 +26,25 @@ object ErrorDetails {
   implicit val errorDetailsDecoder: Decoder[ErrorDetails] = deriveDecoder[ErrorDetails]
 }
 
-case class Artist(name: String, id: String)
+case class Artist(name: String, images: Seq[Image])
 
 object Artist extends JsonResponse[Artist] {
 
   implicit val decoder: Decoder[Artist] = deriveDecoder[Artist]
 
-  override def convertToStringSeq(artist: Artist): Seq[String] = Seq(artist.name)
+  override def convertToStringSeq(artist: Artist): Seq[String] = Seq(artist.name + artist.images.map(_.url))
+}
+
+case class ArtistLite(name: String)
+
+object ArtistLite {
+  implicit val decoder: Decoder[ArtistLite] = deriveDecoder[ArtistLite]
+}
+
+case class Image(height: Int, url: String, width: Int)
+
+object Image {
+  implicit val decoder: Decoder[Image] = deriveDecoder[Image]
 }
 
 case class ArtistList(items: Seq[Artist])
@@ -45,7 +57,7 @@ object ArtistList extends JsonResponse[ArtistList] {
     artists.items.flatMap(Artist.convertToStringSeq)
 }
 
-case class Track(name: String, artists: Seq[Artist], id: String)
+case class Track(name: String, artists: Seq[ArtistLite], id: String)
 
 object Track extends JsonResponse[Track] {
   implicit val decoder: Decoder[Track] = deriveDecoder[Track]

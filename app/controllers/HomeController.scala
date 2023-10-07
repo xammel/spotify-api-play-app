@@ -22,6 +22,7 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controll
   implicit val implicitCache: AsyncCacheApi = cache
   implicit val wsClient: WSClient           = ws
 
+  //TODO is this needed? can just map / to home controller method?
   def index() =
     Action { implicit request: Request[AnyContent] =>
       getAccessToken.fold(redirectToAuthorize)(_ => Redirect(routes.HomeController.home()))

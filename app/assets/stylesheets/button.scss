@@ -39,3 +39,33 @@
   box-shadow: none;
   transform: translateY(0);
 }
+
+.parent-space {
+ display: grid;
+ grid-template-columns: 1fr 1fr 1fr;
+}
+.left {
+ grid-column: 1;
+ text-align: left;
+ padding: 5px;
+}
+.center {
+ grid-column: 2;
+ text-align: center;
+ padding: 5px;
+}
+.right {
+ grid-column: 3;
+ text-align: right;
+ padding: 5px;
+}
+
+img.artist-profile {
+    height: 400px;
+    width: 400px;
+}
+
+.image-wrapper{
+    display: flex;
+    justify-content: center;
+}
