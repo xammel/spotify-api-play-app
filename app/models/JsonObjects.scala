@@ -3,17 +3,20 @@ package models
 import io.circe._
 import io.circe.generic.semiauto._
 
+//TODO not sure this is necessary any more. convertToStringSeq can probably be removed at the least.
 trait JsonResponse[T] {
   implicit val decoder: Decoder[T]
   def convertToStringSeq(data: T): Seq[String]
 }
 
+//TODO make this camelCase and change decoder to map access_token => accessToken
 case class AccessToken(access_token: String)
 
 object AccessToken {
   implicit val accessTokenDecoder: Decoder[AccessToken] = deriveDecoder[AccessToken]
 }
 
+//TODO consider rename
 case class Error(error: ErrorDetails)
 
 object Error {

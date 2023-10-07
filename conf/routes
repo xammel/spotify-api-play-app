@@ -4,10 +4,9 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET     /                                   controllers.HomeController.index()
+GET     /                                   controllers.HomeController.home()
 GET     /authorize                          controllers.AuthorizationController.authorize()
 GET     /authorization-callback             controllers.AuthorizationController.callback(code)
-GET     /home                               controllers.HomeController.home()
 GET     /artists                            controllers.ApiCallController.getMyTopArtists()
 GET     /tracks                             controllers.ApiCallController.getMyTopTracks()
 GET     /recommendations                    controllers.ApiCallController.getRecommendedTracks()

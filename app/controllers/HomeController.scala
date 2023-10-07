@@ -1,14 +1,14 @@
 package controllers
 
 import akka.Done
-import javax.inject._
 import models._
 import play.api.cache.AsyncCacheApi
-import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import utils.Functions._
 import utils.StringConstants.topTracksCacheKey
+
+import javax.inject._
 
 /**
   * This controller creates an `Action` to handle HTTP requests to the
@@ -16,21 +16,15 @@ import utils.StringConstants.topTracksCacheKey
   */
 @Singleton
 class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controllerComponents: ControllerComponents)
-    extends BaseController
-    with I18nSupport {
+    extends BaseController {
 
   implicit val implicitCache: AsyncCacheApi = cache
-  implicit val wsClient: WSClient           = ws
-
-  //TODO is this needed? can just map / to home controller method?
-  def index() =
-    Action { implicit request: Request[AnyContent] =>
-      getAccessToken.fold(redirectToAuthorize)(_ => Redirect(routes.HomeController.home()))
-    }
+  implicit val implicitWs: WSClient         = ws
 
   def home(): Action[AnyContent] =
     Action { implicit request: RequestHeader =>
       getAccessToken.fold(redirectToAuthorize) { token =>
+
         implicit val accessToken: AccessToken = AccessToken(token)
 
         val cacheTopTracksResult: Either[Error, Done] = cacheTopTracks
