@@ -28,18 +28,20 @@
                 <h2 class="center lighter-font">@trackArtists(track)</h2>
             </div>
 
-            <button value="@track.id">Save Track</button>
-
-            <iframe style="border-radius:12px"
-                    src=@("https://open.spotify.com/embed/track/" + track.id +
-            "?utm_source=generator")
-            width="100%" height="380" frameBorder="0" allowfullscreen=""
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+            <div class="two-column-line">
+                <iframe class="embedded-player"
+                        src=@("https://open.spotify.com/embed/track/" + track.id +
+                "?utm_source=generator")
+                width="100%" height="380" frameBorder="0" allowfullscreen=""
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
+                </iframe>
+                <button class="button" id="save-track" value="@track.id">Save Track</button>
+            </div>
 
             }
 
 
-            <button onclick="location.href = '/refresh-recommendations';">More Recommendations</button>
+            <button class="button" id="refresh" onclick="location.href = '/refresh-recommendations';">More Recommendations</button>
 
         </article>
     </div>
