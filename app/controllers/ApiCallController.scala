@@ -87,6 +87,9 @@ class ApiCallController @Inject() (
           "ids" -> Seq(trackId.trim)
         )
 
+        //TODO remove
+        println("about to hit api")
+
         hitApi(myTracksEndpoint, token)
           .addHttpHeaders("Content-Type" -> "application/json")
           .put(data)

@@ -4,6 +4,7 @@
 
 @main("Recommendations") {
 <script src="/assets/scripts/saveTrack.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <section id="content">
     <div class="wrapper">
         <article>
@@ -23,23 +24,26 @@
 
             @recommendations.map{ track =>
 
-            <div class="two-column-line">
+            <div class="two-column-line-even">
                 <h2 class="left">@track.name</h2>
                 <h2 class="center lighter-font">@trackArtists(track)</h2>
             </div>
 
-            <div class="two-column-line">
+            <div class="two-column-line-uneven">
                 <iframe class="embedded-player"
                         src=@("https://open.spotify.com/embed/track/" + track.id +
                 "?utm_source=generator")
                 width="100%" height="380" frameBorder="0" allowfullscreen=""
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
                 </iframe>
-                <button class="button" id="save-track" value="@track.id">Save Track</button>
+                <button class="button save-track-button" id="save-track" value="@track.id">
+                    <i class="fa fa-heart-o fa-2x"></i>
+                </button>
             </div>
 
-            }
+            <br>
 
+            }
 
             <button class="button" id="refresh" onclick="location.href = '/refresh-recommendations';">More Recommendations</button>
 

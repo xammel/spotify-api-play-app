@@ -41,14 +41,28 @@
   transform: translateY(0);
 }
 
+.save-track-button {
+    width: 50%;
+    height: 25%;
+    grid-column: 2;
+    position: relative;
+    left: 45%;
+    top: 30%
+}
+
 .parent-space {
  display: grid;
  grid-template-columns: 1fr 1fr 1fr;
 }
 
-.two-column-line {
+.two-column-line-even {
  display: grid;
  grid-template-columns: 1fr 1fr;
+}
+
+.two-column-line-uneven{
+ display: grid;
+ grid-template-columns: 70% 30%;
 }
 
 .left {
