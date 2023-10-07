@@ -16,13 +16,12 @@
                 <h2 class="right">@track.name</h2>
             </div>
 
-<!--            <h4>-->
-<!--                <div style="float:right;">@trackArtists(track)</div>-->
-<!--                <img style="float:left;" src="@(track.album.images.maxBy(_.width).url)">-->
-<!--                <div style="clear: left;"/>-->
-<!--            </h4>-->
             <div>
-                <img class="album-image" src="@(track.album.images.maxBy(_.width).url)">
+                @if(track.album.images.isEmpty){
+                    <p></p>
+                } else {
+                    <img class="album-image" src="@(track.album.images.maxBy(_.width).url)">
+                }
                 <span class="track-artist">@trackArtists(track)</span>
             </div>
 

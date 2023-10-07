@@ -52,13 +52,9 @@ class ApiCallController @Inject() (
   def getMyTopTracks(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
       getAccessToken.fold(redirectToAuthorize) { token =>
-        val topTracksString                      = getTopTracks(token)
-        val error: Either[circe.Error, Error]    = decode[Error](topTracksString)
+        val topTracksString                                  = getTopTracks(token)
+        val error: Either[circe.Error, Error]                = decode[Error](topTracksString)
         val errorOrTrackList: Either[circe.Error, TrackList] = decode[TrackList](topTracksString)
-
-        //TODO remove
-        println(topTracksString)
-
 
         (error, errorOrTrackList) match {
           case (Right(Error(ErrorDetails(401, _))), _)     => redirectToAuthorize
@@ -76,8 +72,10 @@ class ApiCallController @Inject() (
       val recommendedTracks: Option[Recommendations] = getCache[Recommendations](recommendedTracksCacheKey)
 
       (topTracks, recommendedTracks) match {
-        case (Some(tracks), Some(recommendations)) =>
-          Ok(views.html.recommendations(tracks.items, recommendations.tracks))
+        case (Some(trackList), Some(recommendations)) =>
+          val seedIds    = recommendations.seeds.map(_.id)
+          val seedTracks = trackList.items.filter { track => seedIds.contains(track.id) }
+          Ok(views.html.recommendations(seedTracks, recommendations.tracks))
         case _ => Redirect(routes.HomeController.home())
       }
     }

@@ -1,33 +1,46 @@
 @(seeds: Seq[Track], recommendations: Seq[Track])
 
+@trackArtists(track: Track) = { @track.artists.map(_.name).mkString(" & ") }
+
 @main("Recommendations") {
 <script src="/assets/scripts/saveTrack.js"></script>
 <section id="content">
     <div class="wrapper">
         <article>
             <h1>Seed Tracks</h1>
-            <p>
-                @seeds.map{ seed =>
-                <li>@seed.name by @seed.artists.map(_.name).mkString(" & ")</li>
-                }
-            </p>
+
+            @seeds.zipWithIndex.map { case (seed, index) =>
+            <div class="parent-space">
+                <h2 class="left">@(index + 1)</h2>
+                <h2 class="center"></h2>
+                <h2 class="right">@seed.name</h2>
+            </div>
+            <div style="float: right;">@trackArtists(seed)</div>
+            <br>
+            }
+
             <h1>Recommendations</h1>
-            <p>
-                @recommendations.map{ track =>
-                <li>@track.name by @track.artists.map(_.name).mkString(" & ")</li>
 
-                <button value="@track.id">Save Track</button>
+            @recommendations.map{ track =>
 
-                <iframe style="border-radius:12px"
-                        src=@("https://open.spotify.com/embed/track/" + track.id +
-                "?utm_source=generator")
-                width="100%" height="380" frameBorder="0" allowfullscreen=""
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
-                }
-            </p>
-            <p>
-                <button onclick="location.href = '/refresh-recommendations';">More Recommendations</button>
-            </p>
+            <div class="two-column-line">
+                <h2 class="left">@track.name</h2>
+                <h2 class="center lighter-font">@trackArtists(track)</h2>
+            </div>
+
+            <button value="@track.id">Save Track</button>
+
+            <iframe style="border-radius:12px"
+                    src=@("https://open.spotify.com/embed/track/" + track.id +
+            "?utm_source=generator")
+            width="100%" height="380" frameBorder="0" allowfullscreen=""
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+
+            }
+
+
+            <button onclick="location.href = '/refresh-recommendations';">More Recommendations</button>
+
         </article>
     </div>
 </section>
