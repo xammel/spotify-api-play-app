@@ -1,5 +1,7 @@
 package utils
 
+import play.api.libs.json.{JsObject, Json}
+
 object StringConstants {
 
   // URL beginnings
@@ -27,9 +29,9 @@ object StringConstants {
   // Constants
   val lengthOfCodeVerifier = 128
   val sha256               = "SHA-256"
-  val tokenKey             = "token"
 
   // Cache keys
+  val tokenKey                  = "token"
   val topTracksCacheKey         = "topTracks"
   val recommendedTracksCacheKey = "recommendedTracks"
 
@@ -48,11 +50,18 @@ object StringConstants {
       "code_verifier" -> codeVerifier
     )
 
+  val requiredPermissions = Seq(
+    "user-read-private",
+    "user-read-email",
+    "user-top-read",
+    "user-library-modify"
+  )
+
   def authorizeParams(codeChallenge: String) =
     Map(
       "response_type"         -> "code",
       "client_id"             -> clientId,
-      "scope"                 -> "user-read-private user-read-email user-top-read user-library-modify",
+      "scope"                 -> requiredPermissions.mkString(" "),
       "redirect_uri"          -> authorizationCallback,
       "code_challenge_method" -> "S256",
       "code_challenge"        -> codeChallenge
@@ -63,4 +72,7 @@ object StringConstants {
       "limit"       -> "10", // number of recommendations to return
       "seed_tracks" -> seedTrackIds.mkString(",")
     )
+
+  def trackIdJson(id: String): JsObject = Json.obj("ids" -> Seq(id.trim))
+
 }

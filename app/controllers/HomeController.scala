@@ -23,9 +23,7 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controll
 
   def home(): Action[AnyContent] =
     Action { implicit request: RequestHeader =>
-      getAccessToken.fold(redirectToAuthorize) { token =>
-        implicit val accessToken: AccessToken = AccessToken(token)
-
+      getAccessToken.fold(redirectToAuthorize) { implicit accessToken =>
         val cacheTopTracksResult: Either[Error, Done] = cacheTopTracks
 
         val topTracks: Either[Error, TrackList] =
@@ -38,26 +36,6 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controll
           case Left(error)                                => InternalServerError(error.error.message)
           case Right(_)                                   => Ok(views.html.home())
         }
-
-        //TODO NEED TO TEST!
-
-//        cacheTopTracksResult match {
-//          case Left(Error(ErrorDetails(401, _))) => redirectToAuthorize
-//          case Left(error)                       => InternalServerError(error.error.message)
-//          case Right(_) => {
-//            val topTracks: Option[TrackList] = getCache[TrackList](topTracksCacheKey)
-//            topTracks match {
-//              case None => InternalServerError("Could not fetch cached top tracks")
-//              case Some(tracks) =>
-//                val cacheRecommendedTracksResult = cacheRecommendedTracks(tracks)
-//                cacheRecommendedTracksResult match {
-//                  case Left(Error(ErrorDetails(401, _))) => redirectToAuthorize
-//                  case Left(error)                       => InternalServerError(error.error.message)
-//                  case Right(_)                          => Ok(views.html.home())
-//                }
-//            }
-//          }
-//        }
       }
     }
 
