@@ -18,8 +18,12 @@ object Functions extends Results {
   def redirectToAuthorize: Result                                     = Redirect(controllers.routes.AuthorizationController.authorize())
   def getAccessToken(implicit request: RequestHeader): Option[String] = request.session.get(tokenKey)
 
-  def getCache[T: ClassTag](key: String)(implicit cache: AsyncCacheApi): Option[T] =
-    Await.result(cache.get[T](key), Duration.Inf)
+  def getCache[T: ClassTag](key: String)(implicit cache: AsyncCacheApi): Either[Error, T] =
+    Await.result(cache.get[T](key), Duration.Inf) match {
+      case None => Left(Error(ErrorDetails(500, s"Could not retrieve item from cache with key: $key")))
+      case Some(v) => Right(v)
+    }
+
   def setCache[T](key: String, data: T)(implicit cache: AsyncCacheApi): Done =
     Await.result(cache.set(key, data), Duration.Inf)
 

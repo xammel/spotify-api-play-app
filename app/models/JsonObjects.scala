@@ -17,6 +17,7 @@ object AccessToken {
 }
 
 //TODO consider rename
+//TODO consider renaming error to errorDetails and customizing the decoder
 case class Error(error: ErrorDetails)
 
 object Error {
