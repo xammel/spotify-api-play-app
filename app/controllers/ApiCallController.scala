@@ -6,6 +6,7 @@ import models.{AccessToken, ArtistList, Error, ErrorDetails, Recommendations, Tr
 import play.api.cache._
 import play.api.libs.ws._
 import play.api.mvc._
+import utils.ActionWithAccessToken
 import utils.Functions._
 import utils.StringConstants._
 
@@ -19,24 +20,22 @@ class ApiCallController @Inject() (
     val controllerComponents: ControllerComponents
 ) extends BaseController {
 
-  implicit val implicitWs    = ws
-  implicit val implicitCache = cache
+  implicit val implicitWs         = ws
+  implicit val implicitCache      = cache
+  implicit val implicitComponents = controllerComponents
 
   def getMyTopArtists(): Action[AnyContent] =
-    Action { implicit request: Request[AnyContent] =>
-      getAccessToken.fold(redirectToAuthorize) { implicit accessToken =>
+    ActionWithAccessToken { implicit accessToken =>
+      val myTopArtistsFuture: Future[WSResponse]             = hitApi(myTopArtistsEndpoint).get()
+      val myTopArtistsJson: String                           = Await.result(myTopArtistsFuture, Duration.Inf).body
+      val error: Either[circe.Error, Error]                  = decode[Error](myTopArtistsJson)
+      val errorOrArtistList: Either[circe.Error, ArtistList] = decode[ArtistList](myTopArtistsJson)
 
-        val myTopArtistsFuture: Future[WSResponse]             = hitApi(myTopArtistsEndpoint).get()
-        val myTopArtistsJson: String                           = Await.result(myTopArtistsFuture, Duration.Inf).body
-        val error: Either[circe.Error, Error]                  = decode[Error](myTopArtistsJson)
-        val errorOrArtistList: Either[circe.Error, ArtistList] = decode[ArtistList](myTopArtistsJson)
-
-        (error, errorOrArtistList) match {
-          case (Right(Error(ErrorDetails(UNAUTHORIZED, _))), _) => redirectToAuthorize
-          case (Right(error), _)                                => InternalServerError(error.error.message)
-          case (_, Right(artistList))                           => Ok(views.html.artists("Your Top Artists", artistList.items))
-          case _                                                => InternalServerError("Response couldn't be decoded as an error or artist details...")
-        }
+      (error, errorOrArtistList) match {
+        case (Right(Error(ErrorDetails(UNAUTHORIZED, _))), _) => redirectToAuthorize
+        case (Right(error), _)                                => InternalServerError(error.error.message)
+        case (_, Right(artistList))                           => Ok(views.html.artists("Your Top Artists", artistList.items))
+        case _                                                => InternalServerError("Response couldn't be decoded as an error or artist details...")
       }
     }
 
@@ -49,23 +48,21 @@ class ApiCallController @Inject() (
   }
 
   def getMyTopTracks(): Action[AnyContent] =
-    Action { implicit request: Request[AnyContent] =>
-      getAccessToken.fold(redirectToAuthorize) { implicit accessToken =>
-        val topTracksJson                                    = getTopTracksJson
-        val error: Either[circe.Error, Error]                = decode[Error](topTracksJson)
-        val errorOrTrackList: Either[circe.Error, TrackList] = decode[TrackList](topTracksJson)
+    ActionWithAccessToken { implicit accessToken =>
+      val topTracksJson                                    = getTopTracksJson
+      val error: Either[circe.Error, Error]                = decode[Error](topTracksJson)
+      val errorOrTrackList: Either[circe.Error, TrackList] = decode[TrackList](topTracksJson)
 
-        (error, errorOrTrackList) match {
-          case (Right(Error(ErrorDetails(UNAUTHORIZED, _))), _) => redirectToAuthorize
-          case (Right(error), _)                                => InternalServerError(error.error.message)
-          case (_, Right(trackList))                            => Ok(views.html.tracks("Your Top Tracks", trackList.items))
-          case _                                                => InternalServerError("Response couldn't be decoded as an error or artist details...")
-        }
+      (error, errorOrTrackList) match {
+        case (Right(Error(ErrorDetails(UNAUTHORIZED, _))), _) => redirectToAuthorize
+        case (Right(error), _)                                => InternalServerError(error.error.message)
+        case (_, Right(trackList))                            => Ok(views.html.tracks("Your Top Tracks", trackList.items))
+        case _                                                => InternalServerError("Response couldn't be decoded as an error or artist details...")
       }
     }
 
   def getRecommendedTracks(): Action[AnyContent] =
-    Action { implicit request: Request[AnyContent] =>
+    ActionWithAccessToken { _ =>
       val topTracks: Either[Error, TrackList]               = getCache[TrackList](topTracksCacheKey)
       val recommendedTracks: Either[Error, Recommendations] = getCache[Recommendations](recommendedTracksCacheKey)
 
@@ -81,29 +78,23 @@ class ApiCallController @Inject() (
     }
 
   def saveTrack(trackId: String): Action[AnyContent] =
-    Action { implicit request =>
-      getAccessToken.fold(redirectToAuthorize) { implicit accessToken =>
-        val idsToSaveToLibrary = trackIdJson(trackId)
+    ActionWithAccessToken { implicit accessToken =>
+      val idsToSaveToLibrary = trackIdJson(trackId)
 
-        hitApi(myTracksEndpoint)
-          .addHttpHeaders("Content-Type" -> "application/json")
-          .put(idsToSaveToLibrary)
+      hitApi(myTracksEndpoint)
+        .addHttpHeaders("Content-Type" -> "application/json")
+        .put(idsToSaveToLibrary)
 
-        Ok
-      }
+      Ok
     }
 
   def refreshRecommendations(): Action[AnyContent] =
-    Action { implicit request =>
-      getAccessToken.fold(redirectToAuthorize) { implicit accessToken =>
-
-        getCache[TrackList](topTracksCacheKey) match {
-          case Left(_) => InternalServerError("Cannot retrieve top tracks from cache")
-          case Right(tracks) =>
-            cacheRecommendedTracks(tracks)
-            Redirect(routes.ApiCallController.getRecommendedTracks())
-        }
+    ActionWithAccessToken { implicit accessToken =>
+      getCache[TrackList](topTracksCacheKey) match {
+        case Left(_) => InternalServerError("Cannot retrieve top tracks from cache")
+        case Right(tracks) =>
+          cacheRecommendedTracks(tracks)
+          Redirect(routes.ApiCallController.getRecommendedTracks())
       }
     }
-
 }

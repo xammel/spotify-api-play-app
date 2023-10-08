@@ -7,7 +7,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 import utils.Functions._
 import utils.StringConstants.topTracksCacheKey
-
+import utils.ActionWithAccessToken
 import javax.inject._
 
 /**
@@ -18,24 +18,23 @@ import javax.inject._
 class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controllerComponents: ControllerComponents)
     extends BaseController {
 
-  implicit val implicitCache: AsyncCacheApi = cache
-  implicit val implicitWs: WSClient         = ws
+  implicit val implicitCache: AsyncCacheApi             = cache
+  implicit val implicitWs: WSClient                     = ws
+  implicit val implicitComponents: ControllerComponents = controllerComponents
 
   def home(): Action[AnyContent] =
-    Action { implicit request: RequestHeader =>
-      getAccessToken.fold(redirectToAuthorize) { implicit accessToken =>
-        val cacheTopTracksResult: Either[Error, Done] = cacheTopTracks
+    ActionWithAccessToken { implicit accessToken =>
+      val cacheTopTracksResult: Either[Error, Done] = cacheTopTracks
 
-        val topTracks: Either[Error, TrackList] =
-          cacheTopTracksResult.flatMap(_ => getCache[TrackList](topTracksCacheKey))
+      val topTracks: Either[Error, TrackList] =
+        cacheTopTracksResult.flatMap(_ => getCache[TrackList](topTracksCacheKey))
 
-        val cacheRecommendedTracksResult: Either[Error, Done] = topTracks.flatMap(cacheRecommendedTracks(_))
+      val cacheRecommendedTracksResult: Either[Error, Done] = topTracks.flatMap(cacheRecommendedTracks(_))
 
-        cacheRecommendedTracksResult match {
-          case Left(Error(ErrorDetails(UNAUTHORIZED, _))) => redirectToAuthorize
-          case Left(error)                                => InternalServerError(error.error.message)
-          case Right(_)                                   => Ok(views.html.home())
-        }
+      cacheRecommendedTracksResult match {
+        case Left(Error(ErrorDetails(UNAUTHORIZED, _))) => redirectToAuthorize
+        case Left(error)                                => InternalServerError(error.error.message)
+        case Right(_)                                   => Ok(views.html.home())
       }
     }
 

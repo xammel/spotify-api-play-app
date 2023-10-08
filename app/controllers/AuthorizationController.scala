@@ -18,19 +18,17 @@ class AuthorizationController @Inject() (
     val controllerComponents: ControllerComponents
 ) extends BaseController {
 
-  implicit val implicitWS = ws
   lazy val codeVerifier   = generateRandomString
 
   def authorize(): Action[AnyContent] =
-    Action { implicit request: Request[AnyContent] =>
+    Action {
       val codeChallenge: String = generateCodeChallenge(codeVerifier)
       val joinedParams          = joinURLParameters(authorizeParams(codeChallenge))
 
       Redirect(s"$authorizeEndpoint$joinedParams")
     }
 
-  def callback(code: String): Action[AnyContent] =
-    Action { implicit request: Request[AnyContent] =>
+  def callback(code: String): Action[AnyContent] = Action {
       val joinedParams = joinURLParameters(callbackParams(code, codeVerifier))
 
       val apiTokenFuture: Future[WSResponse] = ws
