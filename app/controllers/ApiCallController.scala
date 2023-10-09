@@ -7,13 +7,13 @@ import play.api.cache._
 import play.api.libs.ws._
 import play.api.mvc._
 import utils.ActionWithAccessToken
-import utils.Functions._
+import utils.CacheMethods.{cacheRecommendedTracks, getCache}
+import utils.ApiMethods._
 import utils.StringConstants._
 
 import javax.inject.Inject
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-
 class ApiCallController @Inject() (
     cache: AsyncCacheApi,
     ws: WSClient,
@@ -82,7 +82,7 @@ class ApiCallController @Inject() (
       val idsToSaveToLibrary = trackIdJson(trackId)
 
       hitApi(myTracksEndpoint)
-        .addHttpHeaders("Content-Type" -> "application/json")
+        .addHttpHeaders(CONTENT_TYPE -> JSON)
         .put(idsToSaveToLibrary)
 
       Ok

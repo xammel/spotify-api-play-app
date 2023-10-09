@@ -6,7 +6,7 @@ import models.AccessToken
 import play.api.libs.ws._
 import play.api.mvc._
 import utils.AuthorizationMethods._
-import utils.Functions.joinURLParameters
+import utils.ApiMethods.joinURLParameters
 import utils.StringConstants._
 
 import javax.inject.Inject
@@ -33,7 +33,7 @@ class AuthorizationController @Inject() (
 
       val apiTokenFuture: Future[WSResponse] = ws
         .url(apiTokenEndpoint)
-        .addHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded")
+        .addHttpHeaders(CONTENT_TYPE -> FORM)
         .post(joinedParams)
 
       val accessTokenJson: String                              = Await.result(apiTokenFuture, Duration.Inf).body

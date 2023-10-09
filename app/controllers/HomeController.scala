@@ -5,9 +5,11 @@ import models._
 import play.api.cache.AsyncCacheApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import utils.Functions._
-import utils.StringConstants.topTracksCacheKey
 import utils.ActionWithAccessToken
+import utils.CacheMethods.{cacheRecommendedTracks, cacheTopTracks, getCache}
+import utils.ApiMethods._
+import utils.StringConstants.topTracksCacheKey
+
 import javax.inject._
 
 /**

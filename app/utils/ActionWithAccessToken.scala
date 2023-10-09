@@ -2,7 +2,7 @@ package utils
 
 import models.AccessToken
 import play.api.mvc._
-import utils.Functions.{getAccessToken, redirectToAuthorize}
+import utils.ApiMethods.{getAccessToken, redirectToAuthorize}
 
 sealed trait ActionWithAccessToken
 
