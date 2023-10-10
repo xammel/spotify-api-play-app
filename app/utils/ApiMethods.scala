@@ -16,7 +16,7 @@ object ApiMethods extends Results with HeaderNames {
 
   def hitApi(url: String)(implicit accessToken: AccessToken, ws: WSClient): WSRequest =
     ws.url(url)
-      .addHttpHeaders(s"$AUTHORIZATION" -> s"Bearer ${accessToken.access_token}")
+      .addHttpHeaders(s"$AUTHORIZATION" -> s"Bearer ${accessToken.accessToken}")
       .withRequestTimeout(10000.millis)
 
   def joinURLParameters(params: Map[String, String]): String = params.map { case (k, v) => s"$k=$v" }.mkString("&")

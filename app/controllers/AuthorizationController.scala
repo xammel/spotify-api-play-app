@@ -43,7 +43,7 @@ class AuthorizationController @Inject() (
         case Left(circeError) => InternalServerError(circeError.getMessage)
         case Right(accessToken) =>
           Redirect(routes.HomeController.home())
-            .withSession(tokenKey -> accessToken.access_token)
+            .withSession(tokenKey -> accessToken.accessToken)
       }
     }
 }

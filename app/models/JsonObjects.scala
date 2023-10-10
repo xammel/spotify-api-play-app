@@ -6,12 +6,14 @@ import io.circe.generic.semiauto._
 abstract class JsonResponse[T] {
   implicit val decoder: Decoder[T]
 }
-
-//TODO make this camelCase and change decoder to map access_token => accessToken
-case class AccessToken(access_token: String)
+case class AccessToken(accessToken: String)
 
 object AccessToken extends JsonResponse[AccessToken] {
-  implicit val decoder: Decoder[AccessToken] = deriveDecoder[AccessToken]
+  implicit val decoder: Decoder[AccessToken] = Decoder.instance { h =>
+    for {
+      token <- h.get[String]("access_token")
+    } yield AccessToken(accessToken = token)
+  }
 }
 
 //TODO consider rename
@@ -61,7 +63,7 @@ object ArtistLite {
 
 case class Album(images: Seq[Image])
 
-object Album extends JsonResponse[Album]{
+object Album extends JsonResponse[Album] {
   implicit val decoder: Decoder[Album] = deriveDecoder[Album]
 }
 
