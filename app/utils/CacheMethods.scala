@@ -26,9 +26,7 @@ object CacheMethods extends Status {
     Await.result(cache.set(key, data), Duration.Inf)
 
   def cacheTopTracks(implicit accessToken: AccessToken, ws: WSClient, cache: AsyncCacheApi): Either[Error, Done] = {
-    val joinedParams                                     = joinURLParameters(topTracksParams)
-    val endpoint                                         = s"$myTopTracksEndpoint?$joinedParams"
-    val responseFuture: Future[WSResponse]               = hitApi(endpoint).get()
+    val responseFuture: Future[WSResponse]               = hitApi(myTopTracksEndpointWithParams).get()
     val topTracksJson: String                            = Await.result(responseFuture, Duration.Inf).body
     val error: Either[circe.Error, Error]                = decode[Error](topTracksJson)
     val topTracksDecoded: Either[circe.Error, TrackList] = decode[TrackList](topTracksJson)

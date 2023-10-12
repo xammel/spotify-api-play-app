@@ -1,6 +1,7 @@
 package utils
 
 import play.api.libs.json.{JsObject, Json}
+import utils.ApiMethods.joinURLParameters
 
 object StringConstants {
 
@@ -18,6 +19,11 @@ object StringConstants {
   val myTopTracksEndpoint     = s"$meTopEndpoint/tracks"
   val recommendationsEndpoint = s"$https/$apiSpotify/recommendations"
   val myTracksEndpoint        = s"$https/$apiSpotify/me/tracks"
+
+  // Fully Qualified API Endpoints
+
+  val myTopTracksEndpointWithParams = s"$myTopTracksEndpoint?${joinURLParameters(topTracksParams)}"
+
 
   // Local URLs
   val localhost             = "localhost:9000"

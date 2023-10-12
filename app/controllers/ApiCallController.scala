@@ -40,9 +40,7 @@ class ApiCallController @Inject() (
     }
 
   private def getTopTracksJson(implicit accessToken: AccessToken): String = {
-    val joinedParams                       = joinURLParameters(topTracksParams)
-    val endpoint                           = s"$myTopTracksEndpoint?$joinedParams"
-    val responseFuture: Future[WSResponse] = hitApi(endpoint).get()
+    val responseFuture: Future[WSResponse] = hitApi(myTopTracksEndpointWithParams).get()
 
     Await.result(responseFuture, Duration.Inf).body
   }
