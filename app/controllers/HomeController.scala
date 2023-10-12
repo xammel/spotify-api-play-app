@@ -26,6 +26,9 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controll
 
   def home(): Action[AnyContent] =
     ActionWithAccessToken { implicit accessToken =>
+
+      println("inside access token block...")
+
       val cacheTopTracksResult: Either[Error, Done] = cacheTopTracks
 
       val topTracks: Either[Error, TrackList] =

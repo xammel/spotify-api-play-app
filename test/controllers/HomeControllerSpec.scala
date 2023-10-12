@@ -26,13 +26,15 @@ class HomeControllerSpec extends PlaySpec with Results {
   val cache: AsyncCacheApi = mock[AsyncCacheApi]
 
   implicit lazy val app: Application = new GuiceApplicationBuilder().build()
+  lazy val controller                = new HomeController(cache, ws, Helpers.stubControllerComponents())
 
   "HomeController#home" should {
-    "should be valid" in {
-      val controller             = new HomeController(cache, ws, Helpers.stubControllerComponents())
+    "should redirect to authorize if the access token is not defined" in {
       val result: Future[Result] = controller.home().apply(FakeRequest())
-      val awaitedResult = Await.result(result, Duration.Inf)
-      awaitedResult mustBe Result().withHeaders(Location -> /authorize)
+      val awaitedResult: Result  = Await.result(result, Duration.Inf)
+
+      awaitedResult.header.status mustBe 303
+      awaitedResult.header.headers mustBe Map("Location" -> "/authorize")
     }
   }
 }
