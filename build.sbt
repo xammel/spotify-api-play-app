@@ -15,9 +15,11 @@ lazy val root = (project in file("."))
     scalaVersion := "2.13.4",
     libraryDependencies ++= Seq(
       guice,
-      "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test,
+      "org.scalatestplus.play"   %% "scalatestplus-play" % "5.0.0" % Test,
+      "de.leanovate.play-mockws" %% "play-mockws"        % "2.8.0" % Test,
+      "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test,
       ws,
-      caffeine,
+      caffeine
     ) ++ circeDependencies,
     scalacOptions ++= Seq("-feature", "-deprecation", "-Xfatal-warnings")
   )
