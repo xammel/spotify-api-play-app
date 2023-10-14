@@ -23,7 +23,8 @@ object StringConstants {
   // Fully Qualified API Endpoints
 
   val myTopTracksEndpointWithParams = s"$myTopTracksEndpoint?${joinURLParameters(topTracksParams)}"
-
+  def recommendationsEndpointWithParams(topFiveTrackIds: Seq[String]) =
+    s"$recommendationsEndpoint?${joinURLParameters(recommendationsParams(topFiveTrackIds))}"
 
   // Local URLs
   val localhost             = "localhost:9000"
@@ -42,7 +43,7 @@ object StringConstants {
   val recommendedTracksCacheKey = "recommendedTracks"
 
   // Http Request Parameters
-  val topTracksParams = Map(
+  lazy val topTracksParams = Map(
     "time_range" -> "short_term", // short_term = last 4 weeks, medium_term = last 6 months, long_term = all time
     "limit"      -> "20" // Number of tracks to return
   )

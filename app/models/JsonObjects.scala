@@ -18,10 +18,14 @@ object AccessToken extends JsonResponse[AccessToken] {
 
 //TODO consider rename
 //TODO consider renaming error to errorDetails and customizing the decoder
-case class Error(error: ErrorDetails)
+case class Error(status: Int, message: String)
 
 object Error extends JsonResponse[Error] {
-  implicit val decoder: Decoder[Error] = deriveDecoder[Error]
+  implicit val decoder: Decoder[Error] = Decoder.instance { h =>
+    for {
+      details <- h.get[ErrorDetails]("error")
+    } yield Error(status = details.status, message = details.message)
+  }
 }
 
 case class ErrorDetails(status: Int, message: String)

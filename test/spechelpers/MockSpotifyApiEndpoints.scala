@@ -4,15 +4,18 @@ import mockws.MockWS
 import mockws.MockWSHelpers.Action
 import play.api.mvc._
 import play.api.test.Helpers._
-import spechelpers.TestData.trackListJson
-import utils.ApiMethods.joinURLParameters
-import utils.StringConstants.{myTopTracksEndpointWithParams, topTracksParams}
+import spechelpers.TestData._
+import utils.StringConstants.{myTopTracksEndpointWithParams, recommendationsEndpointWithParams}
 
 trait MockSpotifyApiEndpoints extends Results {
 
-  val ws: MockWS = MockWS {
-    case (GET, `myTopTracksEndpointWithParams`) => Action { Ok(trackListJson) }
-    case (GET, ) => Action { Ok() }
-  }
+  val x = recommendationsEndpointWithParams(Seq(track.id))
+
+  def mockWS(accessTokenIsExpired: Boolean = false): MockWS =
+    MockWS {
+      case _ if accessTokenIsExpired              => Action { Ok(errorJson) }
+      case (GET, `myTopTracksEndpointWithParams`) => Action { Ok(trackListJson) }
+      case (GET, `x`)                             => Action { Ok(recommendationsJson) }
+    }
 
 }

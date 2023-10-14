@@ -7,8 +7,11 @@ import play.api.mvc._
 import utils.StringConstants._
 
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Awaitable}
 
 object ApiMethods extends Results with HeaderNames {
+
+  def await[T](a: Awaitable[T]) = Await.result(a, Duration.Inf)
 
   def redirectToAuthorize: Result = Redirect(controllers.routes.AuthorizationController.authorize())
   def getAccessToken(implicit request: RequestHeader): Option[AccessToken] =

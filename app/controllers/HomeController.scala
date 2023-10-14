@@ -6,8 +6,8 @@ import play.api.cache.AsyncCacheApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import utils.ActionWithAccessToken
-import utils.CacheMethods.{cacheRecommendedTracks, cacheTopTracks, getCache}
 import utils.ApiMethods._
+import utils.CacheMethods.{cacheRecommendedTracks, cacheTopTracks, getCache}
 import utils.StringConstants.topTracksCacheKey
 
 import javax.inject._
@@ -26,7 +26,6 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controll
 
   def home(): Action[AnyContent] =
     ActionWithAccessToken { implicit accessToken =>
-
       val cacheTopTracksResult: Either[Error, Done] = cacheTopTracks
 
       val topTracks: Either[Error, TrackList] =
@@ -35,9 +34,9 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controll
       val cacheRecommendedTracksResult: Either[Error, Done] = topTracks.flatMap(cacheRecommendedTracks(_))
 
       cacheRecommendedTracksResult match {
-        case Left(Error(ErrorDetails(UNAUTHORIZED, _))) => redirectToAuthorize
-        case Left(error)                                => InternalServerError(error.error.message)
-        case Right(_)                                   => Ok(views.html.home())
+        case Left(Error(UNAUTHORIZED, _)) => redirectToAuthorize
+        case Left(error)                  => InternalServerError(error.message)
+        case Right(_)                     => Ok(views.html.home())
       }
     }
 

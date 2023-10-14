@@ -3,10 +3,8 @@ package spechelpers
 import org.scalatestplus.play._
 import play.api.mvc._
 import play.api.test._
+import utils.ApiMethods.await
 import utils.StringConstants.tokenKey
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 trait SpecHelpers extends PlaySpec with MockCacheLayer with MockSpotifyApiEndpoints {
 
@@ -15,7 +13,7 @@ trait SpecHelpers extends PlaySpec with MockCacheLayer with MockSpotifyApiEndpoi
 
   def executeAction(action: Action[AnyContent], request: FakeRequest[AnyContent] = requestWithAccessToken): Result = {
     val resultFuture = action.apply(request)
-    Await.result(resultFuture, Duration.Inf)
+    await(resultFuture)
   }
 
 }

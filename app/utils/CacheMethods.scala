@@ -3,31 +3,30 @@ package utils
 import akka.Done
 import io.circe
 import io.circe.parser.decode
-import models.{AccessToken, Error, ErrorDetails, Recommendations, TrackList}
+import models.{AccessToken, Error, Recommendations, TrackList}
 import play.api.cache.AsyncCacheApi
 import play.api.http.Status
 import play.api.libs.ws.{WSClient, WSResponse}
-import utils.ApiMethods.{hitApi, joinURLParameters}
+import utils.ApiMethods.{await, hitApi}
 import utils.StringConstants._
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 import scala.reflect.ClassTag
 object CacheMethods extends Status {
 
   def getCache[T: ClassTag](key: String)(implicit cache: AsyncCacheApi): Either[Error, T] =
-    Await.result(cache.get[T](key), Duration.Inf) match {
+    await(cache.get[T](key)) match {
       case None =>
-        Left(Error(ErrorDetails(INTERNAL_SERVER_ERROR, s"Could not retrieve item from cache with key: $key")))
+        Left(Error(INTERNAL_SERVER_ERROR, s"Could not retrieve item from cache with key: $key"))
       case Some(v) => Right(v)
     }
 
   def setCache[T](key: String, data: T)(implicit cache: AsyncCacheApi): Done =
-    Await.result(cache.set(key, data), Duration.Inf)
+    await(cache.set(key, data))
 
   def cacheTopTracks(implicit accessToken: AccessToken, ws: WSClient, cache: AsyncCacheApi): Either[Error, Done] = {
     val responseFuture: Future[WSResponse]               = hitApi(myTopTracksEndpointWithParams).get()
-    val topTracksJson: String                            = Await.result(responseFuture, Duration.Inf).body
+    val topTracksJson: String                            = await(responseFuture).body
     val error: Either[circe.Error, Error]                = decode[Error](topTracksJson)
     val topTracksDecoded: Either[circe.Error, TrackList] = decode[TrackList](topTracksJson)
 
@@ -37,7 +36,7 @@ object CacheMethods extends Status {
         setCache(topTracksCacheKey, trackList)
         Right(Done)
       case _ =>
-        Left(Error(ErrorDetails(INTERNAL_SERVER_ERROR, "Couldn't decode response as a known error or track list")))
+        Left(Error(INTERNAL_SERVER_ERROR, "Couldn't decode response as a known error or track list"))
     }
   }
 
@@ -47,9 +46,8 @@ object CacheMethods extends Status {
 
     val topFiveTrackIds: Seq[String] = topTracks.items.take(5).map(_.id)
 
-    val joinedParams                              = joinURLParameters(recommendationsParams(topFiveTrackIds))
-    val recommendationsFuture: Future[WSResponse] = hitApi(s"$recommendationsEndpoint?$joinedParams").get()
-    val recommendationsJson: String               = Await.result(recommendationsFuture, Duration.Inf).body
+    val recommendationsFuture: Future[WSResponse] = hitApi(recommendationsEndpointWithParams(topFiveTrackIds)).get()
+    val recommendationsJson: String               = await(recommendationsFuture).body
 
     val error: Either[circe.Error, Error]                     = decode[Error](recommendationsJson)
     val recommendations: Either[circe.Error, Recommendations] = decode[Recommendations](recommendationsJson)
@@ -61,7 +59,7 @@ object CacheMethods extends Status {
         Right(Done)
       case _ =>
         Left(
-          Error(ErrorDetails(INTERNAL_SERVER_ERROR, "Couldn't decode response as a known error or recommended tracks"))
+          Error(INTERNAL_SERVER_ERROR, "Couldn't decode response as a known error or recommended tracks")
         )
     }
   }
