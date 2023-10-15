@@ -9,13 +9,14 @@ import utils.StringConstants.{myTopTracksEndpointWithParams, recommendationsEndp
 
 trait MockSpotifyApiEndpoints extends Results {
 
-  val x = recommendationsEndpointWithParams(Seq(track.id))
+  val recommendationsEndpoint = recommendationsEndpointWithParams(Seq(track.id))
 
-  def mockWS(accessTokenIsExpired: Boolean = false): MockWS =
+  def mockWS(accessTokenIsExpired: Boolean = false, returnUnexpectedResponse: Boolean = false): MockWS =
     MockWS {
+      case _ if returnUnexpectedResponse          => Action { Ok(unexpectedResponseJson) }
       case _ if accessTokenIsExpired              => Action { Ok(errorJson) }
       case (GET, `myTopTracksEndpointWithParams`) => Action { Ok(trackListJson) }
-      case (GET, `x`)                             => Action { Ok(recommendationsJson) }
+      case (GET, `recommendationsEndpoint`)       => Action { Ok(recommendationsJson) }
     }
 
 }

@@ -16,8 +16,6 @@ object AccessToken extends JsonResponse[AccessToken] {
   }
 }
 
-//TODO consider rename
-//TODO consider renaming error to errorDetails and customizing the decoder
 case class Error(status: Int, message: String)
 
 object Error extends JsonResponse[Error] {

@@ -26,4 +26,8 @@ object TestData {
   lazy val rawError = ErrorRaw(error = ErrorDetails(UNAUTHORIZED, "hi"))
   lazy val errorJson = rawError.asJson.noSpaces
 
+  case class UnexpectedResponse(payload: String)
+  lazy val unexpectedResponse = UnexpectedResponse(payload = "Unexpected Response")
+  lazy val unexpectedResponseJson = unexpectedResponse.asJson.noSpaces
+
 }
