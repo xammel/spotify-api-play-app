@@ -1,13 +1,13 @@
 package spechelpers
 
 import org.scalatestplus.play._
-import play.api.http.Status
+import play.api.http.{HeaderNames, Status}
 import play.api.mvc._
 import play.api.test._
 import utils.ApiMethods.await
 import utils.StringConstants.tokenKey
 
-trait SpecHelpers extends PlaySpec with MockCacheLayer with MockSpotifyApiEndpoints with Status {
+trait SpecHelpers extends PlaySpec with MockCacheLayer with MockSpotifyApiEndpoints with Status with HeaderNames {
 
   lazy val testAccessTokenString  = "abc123"
   lazy val requestWithAccessToken = FakeRequest().withSession((tokenKey, testAccessTokenString))

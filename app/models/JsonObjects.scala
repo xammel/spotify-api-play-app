@@ -16,6 +16,7 @@ object AccessToken extends JsonResponse[AccessToken] {
   }
 }
 
+//TODO consider renaming to eg. Spotify error to clarify Either[Error, Error] situations
 case class Error(status: Int, message: String)
 
 object Error extends JsonResponse[Error] {

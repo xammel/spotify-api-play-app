@@ -19,13 +19,7 @@ class AuthorizationController @Inject() (
 
   lazy val codeVerifier = generateRandomString
 
-  def authorize(): Action[AnyContent] =
-    Action {
-      val codeChallenge: String = generateCodeChallenge(codeVerifier)
-      val joinedParams          = joinURLParameters(authorizeParams(codeChallenge))
-
-      Redirect(s"$authorizeEndpoint$joinedParams")
-    }
+  def authorize(): Action[AnyContent] = Action { Redirect(authorizationEndpointWithParams(codeVerifier)) }
 
   def callback(code: String): Action[AnyContent] =
     Action {

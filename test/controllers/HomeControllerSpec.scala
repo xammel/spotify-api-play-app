@@ -42,7 +42,7 @@ class HomeControllerSpec extends SpecHelpers {
       val result = executeAction(controller(accessTokenIsExpired = true).home())
 
       result.header.status mustBe SEE_OTHER
-      result.header.headers mustBe Map("Location" -> "/authorize")
+      result.header.headers mustBe Map(LOCATION -> "/authorize")
     }
 
     "redirect to home page if all is well" in {

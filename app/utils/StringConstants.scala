@@ -2,6 +2,7 @@ package utils
 
 import play.api.libs.json.{JsObject, Json}
 import utils.ApiMethods.joinURLParameters
+import utils.AuthorizationMethods.generateCodeChallenge
 
 object StringConstants {
 
@@ -25,6 +26,12 @@ object StringConstants {
   val myTopTracksEndpointWithParams = s"$myTopTracksEndpoint?${joinURLParameters(topTracksParams)}"
   def recommendationsEndpointWithParams(topFiveTrackIds: Seq[String]) =
     s"$recommendationsEndpoint?${joinURLParameters(recommendationsParams(topFiveTrackIds))}"
+
+  def authorizationEndpointWithParams(codeVerifier: String) = {
+    val codeChallenge = generateCodeChallenge(codeVerifier)
+    val params        = authorizeParams(codeChallenge)
+    s"$authorizeEndpoint${joinURLParameters(params)}"
+  }
 
   // Local URLs
   val localhost             = "localhost:9000"

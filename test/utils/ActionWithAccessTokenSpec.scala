@@ -15,8 +15,8 @@ class ActionWithAccessTokenSpec extends SpecHelpers {
     "redirect to authorize if the access token is not defined" in {
       val result = executeAction(testAction, FakeRequest())
 
-      result.header.status mustBe 303
-      result.header.headers mustBe Map("Location" -> "/authorize")
+      result.header.status mustBe SEE_OTHER
+      result.header.headers mustBe Map(LOCATION -> "/authorize")
     }
 
     "execute the provided block if the access token is defined" in {
@@ -24,7 +24,7 @@ class ActionWithAccessTokenSpec extends SpecHelpers {
       val result     = executeAction(testAction)
       val resultBody = await(result.body.consumeData)
 
-      result.header.status mustBe 200
+      result.header.status mustBe OK
       resultBody.utf8String mustBe testAccessTokenString
     }
   }
