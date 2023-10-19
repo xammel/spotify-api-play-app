@@ -4,7 +4,7 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 import models._
 import utils.CacheMethods.UNAUTHORIZED
-object TestData {
+trait TestData {
 
   lazy val track: Track = Track(
     id = "id1",
@@ -23,11 +23,16 @@ object TestData {
   lazy val recommendationsJson = recommendations.asJson.noSpaces
 
   case class ErrorRaw(error: ErrorDetails)
-  lazy val rawError = ErrorRaw(error = ErrorDetails(UNAUTHORIZED, "hi"))
+  lazy val rawError  = ErrorRaw(error = ErrorDetails(UNAUTHORIZED, "hi"))
   lazy val errorJson = rawError.asJson.noSpaces
 
   case class UnexpectedResponse(payload: String)
-  lazy val unexpectedResponse = UnexpectedResponse(payload = "Unexpected Response")
+  lazy val unexpectedResponse     = UnexpectedResponse(payload = "Unexpected Response")
   lazy val unexpectedResponseJson = unexpectedResponse.asJson.noSpaces
+
+  case class AccessTokenFromSpotify(access_token: String)
+  lazy val testAccessTokenString = "abc123"
+  lazy val accessToken           = AccessTokenFromSpotify(testAccessTokenString)
+  lazy val accessTokenJsonString = accessToken.asJson.noSpaces
 
 }

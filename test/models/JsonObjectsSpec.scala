@@ -5,14 +5,12 @@ import spechelpers.SpecHelpers
 
 class JsonObjectsSpec extends SpecHelpers {
 
-  lazy val testAccessToken        = "123"
-  lazy val accessTokenJsonString  = s"""{"access_token" : "$testAccessToken"}"""
   lazy val testErrorMessage       = "test message"
   lazy val spotifyErrorJsonString = s"""{"error": {"status": $UNAUTHORIZED, "message": "$testErrorMessage"}}"""
 
   "AccessToken" must {
     "decode" in {
-      decode[AccessToken](accessTokenJsonString) mustBe Right(AccessToken(accessToken = testAccessToken))
+      decode[AccessToken](accessTokenJsonString) mustBe Right(AccessToken(accessToken = testAccessTokenString))
     }
   }
 

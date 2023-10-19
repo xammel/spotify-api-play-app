@@ -33,6 +33,8 @@ object StringConstants {
     s"$authorizeEndpoint${joinURLParameters(params)}"
   }
 
+  def apiTokenPayload(code: String, codeVerifier: String) = joinURLParameters(callbackParams(code, codeVerifier))
+
   // Local URLs
   val localhost             = "localhost:9000"
   val authorizationCallback = s"$http/$localhost/authorization-callback"

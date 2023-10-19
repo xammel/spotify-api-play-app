@@ -3,7 +3,6 @@ package controllers
 import models.TrackList
 import play.api.test._
 import spechelpers.SpecHelpers
-import spechelpers.TestData.{recommendations, trackList}
 import utils.ApiMethods.await
 import utils.StringConstants.{recommendedTracksCacheKey, topTracksCacheKey}
 

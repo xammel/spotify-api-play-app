@@ -23,12 +23,11 @@ class AuthorizationController @Inject() (
 
   def callback(code: String): Action[AnyContent] =
     Action {
-      val joinedParams = joinURLParameters(callbackParams(code, codeVerifier))
 
       val apiTokenFuture: Future[WSResponse] = ws
         .url(apiTokenEndpoint)
         .addHttpHeaders(CONTENT_TYPE -> FORM)
-        .post(joinedParams)
+        .post(apiTokenPayload(code, codeVerifier))
 
       val accessTokenJson: String                              = await(apiTokenFuture).body
       val decodedAccessToken: Either[circe.Error, AccessToken] = decode[AccessToken](accessTokenJson)

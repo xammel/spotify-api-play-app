@@ -2,7 +2,7 @@ package controllers
 
 import play.api.test._
 import spechelpers.SpecHelpers
-import utils.StringConstants.authorizationEndpointWithParams
+import utils.StringConstants.{authorizationEndpointWithParams, tokenKey}
 
 class AuthorizationControllerSpec extends SpecHelpers {
 
@@ -13,7 +13,7 @@ class AuthorizationControllerSpec extends SpecHelpers {
     )
   }
 
-lazy  val authorizationController = controller()
+  lazy val authorizationController = controller()
 
   "AuthorizationController#authorize" should {
     "redirect to spotify's authorization page" in {
@@ -26,14 +26,18 @@ lazy  val authorizationController = controller()
   }
 
   "AuthorizationController#callback" should {
-    "retrieve an access token from spotify" in {
 
-      //TODO need to edit the mockWS instance to return an access token when a POST is made to the endpoint
-      val result = executeAction(authorizationController.callback(authorizationController.codeVerifier))
+    lazy val result = executeAction(authorizationController.callback(authorizationController.codeVerifier))
 
-      println(result)
+    "retrieve the access token from spotify and add it to the session" in {
+      result.newSession.flatMap(_.data.get(tokenKey)) mustBe Some(
+        testAccessTokenString
+      )
+    }
 
-      true mustBe false
+    "redirect to the homepage" in {
+      result.header.status mustBe SEE_OTHER
+      result.header.headers mustBe Map(LOCATION -> "/")
     }
   }
 }

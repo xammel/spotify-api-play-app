@@ -14,8 +14,8 @@ object ApiMethods extends Results with HeaderNames {
   def await[T](a: Awaitable[T]) = Await.result(a, Duration.Inf)
 
   def redirectToAuthorize: Result = Redirect(controllers.routes.AuthorizationController.authorize())
-  def getAccessToken(implicit request: RequestHeader): Option[AccessToken] =
-    request.session.get(tokenKey).map(AccessToken(_))
+  def getAccessToken(implicit requestHeader: RequestHeader): Option[AccessToken] =
+    requestHeader.session.get(tokenKey).map(AccessToken(_))
 
   def hitApi(url: String)(implicit accessToken: AccessToken, ws: WSClient): WSRequest =
     ws.url(url)
