@@ -1,6 +1,7 @@
 package spechelpers
 
 import org.scalatestplus.play._
+import play.api.http.HttpEntity.Strict
 import play.api.http.{HeaderNames, Status}
 import play.api.mvc._
 import play.api.test._
@@ -15,5 +16,11 @@ trait SpecHelpers extends PlaySpec with MockCacheLayer with MockSpotifyApiEndpoi
     val resultFuture = action.apply(request)
     await(resultFuture)
   }
+
+  def getResultBody(result: Result): String =
+    result.body match {
+      case strict: Strict => strict.data.utf8String
+      case _ => throw new Exception("Could not extract data from an HttpEntity that wasn't Strict")
+    }
 
 }

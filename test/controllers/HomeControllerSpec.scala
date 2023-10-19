@@ -48,10 +48,11 @@ class HomeControllerSpec extends SpecHelpers {
       val result = executeAction(controller().home())
 
       result.header.status mustBe OK
+      getResultBody(result) must include("""<section id="home-content">""")
     }
 
     "throw an InternalServerError if the response from the API is not able to be decoded" in {
-      val result: play.api.mvc.Result = executeAction(controller(returnUnexpectedResponse = true).home())
+      val result = executeAction(controller(returnUnexpectedResponse = true).home())
 
       result.header.status mustBe INTERNAL_SERVER_ERROR
     }

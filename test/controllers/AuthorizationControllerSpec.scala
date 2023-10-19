@@ -14,20 +14,21 @@ class AuthorizationControllerSpec extends SpecHelpers {
   }
 
   lazy val authorizationController = controller()
+  import authorizationController.codeVerifier
 
   "AuthorizationController#authorize" should {
     "redirect to spotify's authorization page" in {
       val result = executeAction(authorizationController.authorize(), FakeRequest())
       result.header.status mustBe SEE_OTHER
       result.header.headers mustBe Map(
-        LOCATION -> authorizationEndpointWithParams(authorizationController.codeVerifier)
+        LOCATION -> authorizationEndpointWithParams(codeVerifier)
       )
     }
   }
 
   "AuthorizationController#callback" should {
 
-    lazy val result = executeAction(authorizationController.callback(authorizationController.codeVerifier))
+    lazy val result = executeAction(authorizationController.callback(codeVerifier))
 
     "retrieve the access token from spotify and add it to the session" in {
       result.newSession.flatMap(_.data.get(tokenKey)) mustBe Some(
