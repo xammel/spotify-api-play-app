@@ -19,6 +19,7 @@ trait TestData {
     seeds = Seq(RecommendationSeed(afterFilteringSize = 1, afterRelinkingSize = 1, id = track.id, initialPoolSize = 1)),
     tracks = Seq(track)
   )
+  lazy val recommendations2 = recommendations.copy(tracks = Seq(track.copy(name = "another song")))
   lazy val recommendationsJson = recommendations.asJson.noSpaces
 
   case class ErrorRaw(error: ErrorDetails)
@@ -38,5 +39,7 @@ trait TestData {
 
   lazy val artistList: ArtistList = ArtistList(Seq(Artist("artist", Seq(image))))
   lazy val artistListJson         = artistList.asJson.noSpaces
+
+  lazy val testPutResponse = "Put successful"
 
 }

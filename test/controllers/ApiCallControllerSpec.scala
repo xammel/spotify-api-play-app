@@ -4,7 +4,8 @@ import play.api.cache.AsyncCacheApi
 import play.api.mvc.Result
 import play.api.test._
 import spechelpers.SpecHelpers
-import utils.StringConstants.{topTracksCacheKey, recommendedTracksCacheKey}
+import utils.ApiMethods.await
+import utils.StringConstants.{recommendedTracksCacheKey, topTracksCacheKey}
 class ApiCallControllerSpec extends SpecHelpers {
 
   def controller(
@@ -95,6 +96,54 @@ class ApiCallControllerSpec extends SpecHelpers {
       result.header.status mustBe OK
       getResultBody(result) must include("Recommendations")
     }
+
+    "redirect to home if recommended tracks aren't defined in the cache" in {
+      mockCache.removeAll()
+      mockCache.set(topTracksCacheKey, trackList)
+
+      val result: Result = executeAction(controller(cacheOpt = Some(mockCache)).getRecommendedTracks())
+
+      result.header.status mustBe SEE_OTHER
+      result.header.headers mustBe Map(LOCATION -> "/")
+    }
+
+    "redirect to home if top tracks aren't defined in the cache" in {
+      mockCache.removeAll()
+      mockCache.set(recommendedTracksCacheKey, recommendations)
+
+      val result: Result = executeAction(controller(cacheOpt = Some(mockCache)).getRecommendedTracks())
+
+      result.header.status mustBe SEE_OTHER
+      result.header.headers mustBe Map(LOCATION -> "/")
+    }
   }
+
+  "saveTrack" should {
+    "perform a put request to the tracks spotify endpoint to save a track to the users library" in {
+      mockCache.removeAll()
+      mockCache.set(topTracksCacheKey, trackList)
+      mockCache.set(recommendedTracksCacheKey, recommendations)
+
+      val result = executeAction(controller(cacheOpt = Some(mockCache)).saveTrack(""))
+
+      result.header.status mustBe OK
+      getResultBody(result) mustEqual testPutResponse
+    }
+  }
+
+  "refreshRecommendations" should {
+    "update the recommendations in the cache" in {
+      mockCache.removeAll()
+      mockCache.set(topTracksCacheKey, trackList)
+      mockCache.set(recommendedTracksCacheKey, recommendations2)
+
+      val result = executeAction(controller(cacheOpt = Some(mockCache)).refreshRecommendations())
+
+      await(mockCache.get(recommendedTracksCacheKey)) mustBe Some(recommendations)
+
+    }
+  }
+
+
 
 }

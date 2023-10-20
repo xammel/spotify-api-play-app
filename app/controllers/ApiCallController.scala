@@ -13,6 +13,8 @@ import utils.StringConstants._
 
 import javax.inject.Inject
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class ApiCallController @Inject() (
     cache: AsyncCacheApi,
     ws: WSClient,
@@ -73,11 +75,13 @@ class ApiCallController @Inject() (
     ActionWithAccessToken { implicit accessToken =>
       val idsToSaveToLibrary = trackIdJson(trackId)
 
-      hitApi(myTracksEndpoint)
+     val myTracksFuture: Future[WSResponse] =  hitApi(myTracksEndpoint)
         .addHttpHeaders(CONTENT_TYPE -> JSON)
         .put(idsToSaveToLibrary)
 
-      Ok
+      val myTracksJson: String = await(myTracksFuture).body
+
+      Ok(myTracksJson)
     }
 
   def refreshRecommendations(): Action[AnyContent] =

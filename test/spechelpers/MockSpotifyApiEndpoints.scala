@@ -5,7 +5,7 @@ import mockws.MockWSHelpers.Action
 import play.api.http.Status
 import play.api.mvc._
 import play.api.test.Helpers._
-import utils.StringConstants.{apiTokenEndpoint, myTopArtistsEndpoint, myTopTracksEndpointWithParams, recommendationsEndpointWithParams}
+import utils.StringConstants._
 
 trait MockSpotifyApiEndpoints extends Results with TestData with Status {
 
@@ -24,6 +24,7 @@ trait MockSpotifyApiEndpoints extends Results with TestData with Status {
       case (GET, `recommendationsEndpoint`)       => Action { Ok(recommendationsJson) }
       case (POST, `apiTokenEndpoint`)             => Action { Ok(accessTokenJsonString) }
       case (GET, `myTopArtistsEndpoint`)          => Action { Ok(artistListJson) }
+      case (PUT, `myTracksEndpoint`)              => Action { Ok(testPutResponse) }
     }
 
 }
