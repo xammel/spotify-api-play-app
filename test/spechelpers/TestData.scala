@@ -3,8 +3,10 @@ package spechelpers
 import io.circe.generic.auto._
 import io.circe.syntax._
 import models._
-import utils.CacheMethods.UNAUTHORIZED
+import play.api.http.Status
+
 trait TestData {
+  _: Status =>
 
   lazy val image = Image(height = 1, url = "...", width = 1)
   lazy val track: Track =
@@ -20,8 +22,10 @@ trait TestData {
   lazy val recommendationsJson = recommendations.asJson.noSpaces
 
   case class ErrorRaw(error: ErrorDetails)
-  lazy val unauthorizedSpotifyError     = ErrorRaw(error = ErrorDetails(UNAUTHORIZED, "hi"))
+  lazy val unauthorizedSpotifyError     = ErrorRaw(error = ErrorDetails(UNAUTHORIZED, "unauthorized"))
   lazy val unauthorizedSpotifyErrorJson = unauthorizedSpotifyError.asJson.noSpaces
+  lazy val nonAuthSpotifyError          = ErrorRaw(error = ErrorDetails(NOT_FOUND, "not found"))
+  lazy val nonAuthSpotifyErrorJson      = nonAuthSpotifyError.asJson.noSpaces
 
   case class UnexpectedResponse(payload: String)
   lazy val unexpectedResponse     = UnexpectedResponse(payload = "Unexpected Response")

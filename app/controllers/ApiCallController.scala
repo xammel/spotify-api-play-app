@@ -90,3 +90,7 @@ class ApiCallController @Inject() (
       }
     }
 }
+
+object ApiCallController {
+
+}
