@@ -2,7 +2,7 @@ package controllers
 
 import io.circe
 import io.circe.parser._
-import models.{AccessToken, ArtistList, Error, Recommendations, TrackList}
+import models.{ArtistList, Error, Recommendations, TrackList}
 import play.api.cache._
 import play.api.libs.ws._
 import play.api.mvc._
@@ -38,15 +38,10 @@ class ApiCallController @Inject() (
       }
     }
 
-  private def getTopTracksJson(implicit accessToken: AccessToken): String = {
-    val responseFuture: Future[WSResponse] = hitApi(myTopTracksEndpointWithParams).get()
-
-    await(responseFuture).body
-  }
-
   def getMyTopTracks(): Action[AnyContent] =
     ActionWithAccessToken { implicit accessToken =>
-      val topTracksJson                                    = getTopTracksJson
+      val topTracksFuture: Future[WSResponse]              = hitApi(myTopTracksEndpointWithParams).get()
+      val topTracksJson: String                            = await(topTracksFuture).body
       val error: Either[circe.Error, Error]                = decode[Error](topTracksJson)
       val errorOrTrackList: Either[circe.Error, TrackList] = decode[TrackList](topTracksJson)
 

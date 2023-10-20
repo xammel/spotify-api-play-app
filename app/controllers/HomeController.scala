@@ -12,6 +12,8 @@ import utils.StringConstants.topTracksCacheKey
 
 import javax.inject._
 
+//TODO can refactor the whole app to be written in a non-blocking way with Action.async and returning Future[Result]
+
 /**
   * This controller creates an `Action` to handle HTTP requests to the
   * application's home page.
