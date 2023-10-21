@@ -6,20 +6,23 @@ import utils.AuthorizationMethods.generateCodeChallenge
 
 object StringConstants {
 
+  // Client ID for Spotify API
+  private val spotifyClientId = "84209618a4864d94a1dfefe1cbe5a309"
+
   // URL beginnings
   val https = "https:/"
   val http  = "http:/"
 
   // Spotify URLs
-  val apiSpotify              = "api.spotify.com/v1"
-  val accountsSpotify         = "accounts.spotify.com"
-  val authorizeEndpoint       = s"$https/$accountsSpotify/authorize?"
-  val apiTokenEndpoint        = s"$https/$accountsSpotify/api/token"
-  val meTopEndpoint           = s"$https/$apiSpotify/me/top"
-  val myTopArtistsEndpoint    = s"$meTopEndpoint/artists"
-  val myTopTracksEndpoint     = s"$meTopEndpoint/tracks"
-  val recommendationsEndpoint = s"$https/$apiSpotify/recommendations"
-  val myTracksEndpoint        = s"$https/$apiSpotify/me/tracks"
+  private val apiSpotify          = "api.spotify.com/v1"
+  private val accountsSpotify     = "accounts.spotify.com"
+  private val authorizeEndpoint   = s"$https/$accountsSpotify/authorize?"
+  private val meTopEndpoint       = s"$https/$apiSpotify/me/top"
+  private val myTopTracksEndpoint = s"$meTopEndpoint/tracks"
+  val apiTokenEndpoint            = s"$https/$accountsSpotify/api/token"
+  val myTopArtistsEndpoint        = s"$meTopEndpoint/artists"
+  val recommendationsEndpoint     = s"$https/$apiSpotify/recommendations"
+  val myTracksEndpoint            = s"$https/$apiSpotify/me/tracks"
 
   // Fully Qualified API Endpoints
 
@@ -36,11 +39,8 @@ object StringConstants {
   def apiTokenPayload(code: String, codeVerifier: String) = joinURLParameters(callbackParams(code, codeVerifier))
 
   // Local URLs
-  val localhost             = "localhost:9000"
-  val authorizationCallback = s"$http/$localhost/authorization-callback"
-
-  // Credentials
-  val clientId = "84209618a4864d94a1dfefe1cbe5a309"
+  private val localhost             = "localhost:9000"
+  private val authorizationCallback = s"$http/$localhost/authorization-callback"
 
   // Constants
   val lengthOfCodeVerifier = 128
@@ -57,33 +57,33 @@ object StringConstants {
     "limit"      -> "20" // Number of tracks to return
   )
 
-  def callbackParams(code: String, codeVerifier: String) =
+  private def callbackParams(code: String, codeVerifier: String) =
     Map(
       "grant_type"    -> "authorization_code",
       "code"          -> code,
       "redirect_uri"  -> authorizationCallback,
-      "client_id"     -> clientId,
+      "client_id"     -> spotifyClientId,
       "code_verifier" -> codeVerifier
     )
 
-  val requiredPermissions = Seq(
+  private val requiredPermissions = Seq(
     "user-read-private",
     "user-read-email",
     "user-top-read",
     "user-library-modify"
   )
 
-  def authorizeParams(codeChallenge: String) =
+  private def authorizeParams(codeChallenge: String) =
     Map(
       "response_type"         -> "code",
-      "client_id"             -> clientId,
+      "client_id"             -> spotifyClientId,
       "scope"                 -> requiredPermissions.mkString(" "),
       "redirect_uri"          -> authorizationCallback,
       "code_challenge_method" -> "S256",
       "code_challenge"        -> codeChallenge
     )
 
-  def recommendationsParams(seedTrackIds: Seq[String]) =
+  private def recommendationsParams(seedTrackIds: Seq[String]) =
     Map(
       "limit"       -> "10", // number of recommendations to return
       "seed_tracks" -> seedTrackIds.mkString(",")
