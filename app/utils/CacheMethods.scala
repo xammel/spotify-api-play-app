@@ -17,7 +17,7 @@ object CacheMethods extends Status {
   def getCache[T: ClassTag](key: String)(implicit cache: AsyncCacheApi): Either[Error, T] =
     await(cache.get[T](key)) match {
       case None =>
-        Left(Error(INTERNAL_SERVER_ERROR, s"Could not retrieve item from cache with key: $key"))
+        Left(Error(INTERNAL_SERVER_ERROR, getCacheErrorMessage(key)))
       case Some(v) => Right(v)
     }
 
@@ -36,7 +36,7 @@ object CacheMethods extends Status {
         setCache(topTracksCacheKey, trackList)
         Right(Done)
       case _ =>
-        Left(Error(INTERNAL_SERVER_ERROR, "Couldn't decode response as a known error or track list"))
+        Left(Error(INTERNAL_SERVER_ERROR, cacheTopTracksErrorMessage))
     }
   }
 
@@ -59,7 +59,7 @@ object CacheMethods extends Status {
         Right(Done)
       case _ =>
         Left(
-          Error(INTERNAL_SERVER_ERROR, "Couldn't decode response as a known error or recommended tracks")
+          Error(INTERNAL_SERVER_ERROR, cacheRecommendedTracksErrorMessage)
         )
     }
   }

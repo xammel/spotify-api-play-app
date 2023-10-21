@@ -26,9 +26,11 @@ trait MockCacheLayer {
         Done
       }
 
-    //TODO this is a cheat, but this method is not used in my app
     override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] =
-      orElse
+      get[A](key).flatMap {
+        case None        => orElse
+        case Some(value) => Future(value)
+      }
 
     override def get[T: ClassTag](key: String): Future[Option[T]] =
       Future {

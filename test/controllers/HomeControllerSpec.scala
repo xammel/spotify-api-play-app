@@ -17,7 +17,7 @@ class HomeControllerSpec extends SpecHelpers {
     )
   }
 
-  "HomeController#home" should {
+  "home" should {
     "cache the top tracks" in {
 
       executeAction(controller().home())

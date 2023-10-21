@@ -131,19 +131,24 @@ class ApiCallControllerSpec extends SpecHelpers {
     }
   }
 
-  "refreshRecommendations" should {
+  "refreshRecommendations" must {
     "update the recommendations in the cache" in {
       mockCache.removeAll()
       mockCache.set(topTracksCacheKey, trackList)
       mockCache.set(recommendedTracksCacheKey, recommendations2)
 
-      val result = executeAction(controller(cacheOpt = Some(mockCache)).refreshRecommendations())
+      executeAction(controller(cacheOpt = Some(mockCache)).refreshRecommendations())
 
       await(mockCache.get(recommendedTracksCacheKey)) mustBe Some(recommendations)
+    }
 
+    "throw an error if the top tracks can't be fetched from the cache" in {
+      mockCache.removeAll()
+      val result = executeAction(controller(cacheOpt = Some(mockCache)).refreshRecommendations())
+
+      result.header.status mustEqual INTERNAL_SERVER_ERROR
+      getResultBody(result) mustEqual s"Could not retrieve item from cache with key: $topTracksCacheKey"
     }
   }
-
-
 
 }

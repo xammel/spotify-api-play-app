@@ -91,4 +91,9 @@ object StringConstants {
 
   def trackIdJson(id: String): JsObject = Json.obj("ids" -> Seq(id.trim))
 
+  // Error messages
+
+  def getCacheErrorMessage(key: String)  = s"Could not retrieve item from cache with key: $key"
+  def cacheTopTracksErrorMessage         = "Couldn't decode response as a known error or track list"
+  def cacheRecommendedTracksErrorMessage = "Couldn't decode response as a known error or recommended tracks"
 }

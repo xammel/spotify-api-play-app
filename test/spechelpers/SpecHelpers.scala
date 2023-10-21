@@ -20,7 +20,7 @@ trait SpecHelpers extends PlaySpec with MockCacheLayer with MockSpotifyApiEndpoi
   def getResultBody(result: Result): String =
     result.body match {
       case strict: Strict => strict.data.utf8String
-      case _ => throw new Exception("Could not extract data from an HttpEntity that wasn't Strict")
+      case _              => throw new Exception("Could not extract data from an HttpEntity that wasn't Strict")
     }
 
 }

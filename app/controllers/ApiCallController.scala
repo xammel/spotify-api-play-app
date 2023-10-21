@@ -87,14 +87,10 @@ class ApiCallController @Inject() (
   def refreshRecommendations(): Action[AnyContent] =
     ActionWithAccessToken { implicit accessToken =>
       getCache[TrackList](topTracksCacheKey) match {
-        case Left(_) => InternalServerError("Cannot retrieve top tracks from cache")
+        case Left(error) => InternalServerError(error.message)
         case Right(tracks) =>
           cacheRecommendedTracks(tracks)
           Redirect(routes.ApiCallController.getRecommendedTracks())
       }
     }
-}
-
-object ApiCallController {
-
 }
