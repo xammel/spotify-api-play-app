@@ -1,15 +1,15 @@
 package controllers
 
-import io.circe
 import io.circe.parser._
 import models.AccessToken
 import play.api.libs.ws._
 import play.api.mvc._
-import utils.ApiMethods.{await, joinURLParameters}
 import utils.AuthorizationMethods._
 import utils.StringConstants._
+import utils.TypeAliases.CirceError
 
 import javax.inject.Inject
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AuthorizationController @Inject() (
@@ -22,17 +22,17 @@ class AuthorizationController @Inject() (
   def authorize(): Action[AnyContent] = Action { Redirect(authorizationEndpointWithParams(codeVerifier)) }
 
   def callback(code: String): Action[AnyContent] =
-    Action {
+    Action.async {
 
       val apiTokenFuture: Future[WSResponse] = ws
         .url(apiTokenEndpoint)
         .addHttpHeaders(CONTENT_TYPE -> FORM)
         .post(apiTokenPayload(code, codeVerifier))
 
-      val accessTokenJson: String                              = await(apiTokenFuture).body
-      val decodedAccessToken: Either[circe.Error, AccessToken] = decode[AccessToken](accessTokenJson)
+      val accessTokenJson: Future[String]                             = apiTokenFuture.map(_.body)
+      val decodedAccessToken: Future[Either[CirceError, AccessToken]] = accessTokenJson.map(decode[AccessToken](_))
 
-      decodedAccessToken match {
+      decodedAccessToken.map {
         case Left(circeError) => InternalServerError(circeError.getMessage)
         case Right(accessToken) =>
           Redirect(routes.HomeController.home())

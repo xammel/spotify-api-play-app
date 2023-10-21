@@ -8,9 +8,12 @@ import play.api.mvc._
 import utils.ActionWithAccessToken
 import utils.ApiMethods._
 import utils.CacheMethods.{cacheRecommendedTracks, cacheTopTracks, getCache}
+import utils.NestedFutureHelpers.FutureEitherHelper
 import utils.StringConstants.topTracksCacheKey
 
 import javax.inject._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 //TODO can refactor the whole app to be written in a non-blocking way with Action.async and returning Future[Result]
 
@@ -28,17 +31,18 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controll
 
   def home(): Action[AnyContent] =
     ActionWithAccessToken { implicit accessToken =>
-      val cacheTopTracksResult: Either[Error, Done] = cacheTopTracks
+      val cacheTopTracksFuture: Future[Either[SpotifyError, Done]] = cacheTopTracks
 
-      val topTracks: Either[Error, TrackList] =
-        cacheTopTracksResult.flatMap(_ => getCache[TrackList](topTracksCacheKey))
+      val errorOrTopTracksFuture: Future[Either[SpotifyError, TrackList]] =
+        cacheTopTracksFuture.preserveErrorsAndFlatMap(_ => getCache[TrackList](topTracksCacheKey))
 
-      val cacheRecommendedTracksResult: Either[Error, Done] = topTracks.flatMap(cacheRecommendedTracks(_))
+      val cacheRecommendedTracksFuture: Future[Either[SpotifyError, Done]] =
+        errorOrTopTracksFuture.preserveErrorsAndFlatMap(cacheRecommendedTracks(_))
 
-      cacheRecommendedTracksResult match {
-        case Left(Error(UNAUTHORIZED, _)) => redirectToAuthorize
-        case Left(error)                  => InternalServerError(error.message)
-        case Right(_)                     => Ok(views.html.home())
+      cacheRecommendedTracksFuture.map {
+        case Left(SpotifyError(UNAUTHORIZED, _)) => redirectToAuthorize
+        case Left(error)                         => InternalServerError(error.message)
+        case Right(_)                            => Ok(views.html.home())
       }
     }
 
