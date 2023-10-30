@@ -1,6 +1,7 @@
 package controllers
 
 import models.TrackList
+import play.api.cache.AsyncCacheApi
 import play.api.test._
 import spechelpers.SpecHelpers
 import utils.ApiMethods.await
@@ -8,10 +9,9 @@ import utils.StringConstants.{recommendedTracksCacheKey, topTracksCacheKey}
 
 class HomeControllerSpec extends SpecHelpers {
 
-  def controller(accessTokenIsExpired: Boolean = false, returnUnexpectedResponse: Boolean = false) = {
-    mockCache.removeAll()
+  def controller(cache: Option[AsyncCacheApi] = None, accessTokenIsExpired: Boolean = false, returnUnexpectedResponse: Boolean = false) = {
     new HomeController(
-      mockCache,
+      cache.fold(mockCache)(identity),
       mockWS(accessTokenIsExpired = accessTokenIsExpired, returnUnexpectedResponse = returnUnexpectedResponse),
       Helpers.stubControllerComponents()
     )
@@ -20,18 +20,22 @@ class HomeControllerSpec extends SpecHelpers {
   "home" should {
     "cache the top tracks" in {
 
-      executeAction(controller().home())
+      val cache = mockCache
 
-      val cachedTopTracks: Option[TrackList] = await(mockCache.get(topTracksCacheKey))
+      executeAction(controller(cache = Some(cache)).home())
+
+      val cachedTopTracks: Option[TrackList] = await(cache.get(topTracksCacheKey))
 
       cachedTopTracks mustBe Some(trackList)
     }
 
     "cache the recommended tracks" in {
 
-      executeAction(controller().home())
+      val cache = mockCache
 
-      val recommendedTracks: Option[TrackList] = await(mockCache.get(recommendedTracksCacheKey))
+      executeAction(controller(cache = Some(cache)).home())
+
+      val recommendedTracks: Option[TrackList] = await(cache.get(recommendedTracksCacheKey))
 
       recommendedTracks mustBe Some(recommendations)
     }

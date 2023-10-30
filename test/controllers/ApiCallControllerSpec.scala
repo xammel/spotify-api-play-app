@@ -16,7 +16,6 @@ class ApiCallControllerSpec extends SpecHelpers {
   ) = {
 
     val cache: AsyncCacheApi = cacheOpt.fold {
-      mockCache.removeAll()
       mockCache
     }(identity)
 
@@ -87,31 +86,31 @@ class ApiCallControllerSpec extends SpecHelpers {
 
     "redirect to recommendations page if all is well" in {
 
-      mockCache.removeAll()
-      mockCache.set(topTracksCacheKey, trackList)
-      mockCache.set(recommendedTracksCacheKey, recommendations)
+      val cache = mockCache
+      cache.set(topTracksCacheKey, trackList)
+      cache.set(recommendedTracksCacheKey, recommendations)
 
-      val result: Result = executeAction(controller(cacheOpt = Some(mockCache)).recommendations())
+      val result: Result = executeAction(controller(cacheOpt = Some(cache)).recommendations())
 
       result.header.status mustBe OK
       getResultBody(result) must include("Recommendations")
     }
 
     "redirect to home if recommended tracks aren't defined in the cache" in {
-      mockCache.removeAll()
-      mockCache.set(topTracksCacheKey, trackList)
+      val cache = mockCache
+      cache.set(topTracksCacheKey, trackList)
 
-      val result: Result = executeAction(controller(cacheOpt = Some(mockCache)).recommendations())
+      val result: Result = executeAction(controller(cacheOpt = Some(cache)).recommendations())
 
       result.header.status mustBe SEE_OTHER
       result.header.headers mustBe Map(LOCATION -> "/")
     }
 
     "redirect to home if top tracks aren't defined in the cache" in {
-      mockCache.removeAll()
-      mockCache.set(recommendedTracksCacheKey, recommendations)
+      val cache = mockCache
+      cache.set(recommendedTracksCacheKey, recommendations)
 
-      val result: Result = executeAction(controller(cacheOpt = Some(mockCache)).recommendations())
+      val result: Result = executeAction(controller(cacheOpt = Some(cache)).recommendations())
 
       result.header.status mustBe SEE_OTHER
       result.header.headers mustBe Map(LOCATION -> "/")
@@ -120,11 +119,11 @@ class ApiCallControllerSpec extends SpecHelpers {
 
   "saveTrack" should {
     "perform a put request to the tracks spotify endpoint to save a track to the users library" in {
-      mockCache.removeAll()
-      mockCache.set(topTracksCacheKey, trackList)
-      mockCache.set(recommendedTracksCacheKey, recommendations)
+      val cache = mockCache
+      cache.set(topTracksCacheKey, trackList)
+      cache.set(recommendedTracksCacheKey, recommendations)
 
-      val result = executeAction(controller(cacheOpt = Some(mockCache)).saveTrack(""))
+      val result = executeAction(controller(cacheOpt = Some(cache)).saveTrack(""))
 
       result.header.status mustBe OK
       getResultBody(result) mustEqual testPutResponse
@@ -133,18 +132,17 @@ class ApiCallControllerSpec extends SpecHelpers {
 
   "refreshRecommendations" must {
     "update the recommendations in the cache" in {
-      mockCache.removeAll()
-      mockCache.set(topTracksCacheKey, trackList)
-      mockCache.set(recommendedTracksCacheKey, recommendations2)
+      val cache = mockCache
+      cache.set(topTracksCacheKey, trackList)
+      cache.set(recommendedTracksCacheKey, recommendations2)
 
-      executeAction(controller(cacheOpt = Some(mockCache)).refreshRecommendations())
+      executeAction(controller(cacheOpt = Some(cache)).refreshRecommendations())
 
-      await(mockCache.get(recommendedTracksCacheKey)) mustBe Some(recommendations)
+      await(cache.get(recommendedTracksCacheKey)) mustBe Some(recommendations)
     }
 
     "throw an error if the top tracks can't be fetched from the cache" in {
-      mockCache.removeAll()
-      val result = executeAction(controller(cacheOpt = Some(mockCache)).refreshRecommendations())
+      val result = executeAction(controller().refreshRecommendations())
 
       result.header.status mustEqual INTERNAL_SERVER_ERROR
       getResultBody(result) mustEqual s"Could not retrieve item from cache with key: $topTracksCacheKey"

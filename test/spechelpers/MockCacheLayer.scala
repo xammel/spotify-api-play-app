@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
 
 trait MockCacheLayer {
 
-  lazy val mockCache: AsyncCacheApi = new AsyncCacheApi {
+  def mockCache: AsyncCacheApi = new AsyncCacheApi {
 
     var cacheMap: Map[String, Any] = Map.empty[String, Any]
 
