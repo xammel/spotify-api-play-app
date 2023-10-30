@@ -4,7 +4,7 @@ import io.circe._
 import io.circe.generic.semiauto._
 import shapeless.Lazy.mkLazy
 
-abstract class JsonResponse[T] {
+sealed trait JsonResponse[T] {
   implicit val decoder: Decoder[T]
 }
 
