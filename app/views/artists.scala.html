@@ -1,0 +1,26 @@
+@(title: String, artistList: Seq[Artist])
+
+@main(title) {
+<section id="content">
+    <div class="wrapper">
+        <article>
+            <h1>@title</h1>
+            @artistList.zipWithIndex.map{ case (artist, index) =>
+            <div class="parent-space">
+                <h2 class="left">@(index + 1)</h2>
+                <h2 class="center"></h2>
+                <h2 class="right">@artist.name</h2>
+            </div>
+            @if(artist.images.isEmpty) {
+            <p></p>
+            } else {
+            <div class="image-wrapper">
+                <img class="artist-profile" src="@(artist.images.maxBy(_.width).url)">
+            </div>
+            }
+            <br>
+            }
+        </article>
+    </div>
+</section>
+}

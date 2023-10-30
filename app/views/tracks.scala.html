@@ -1,0 +1,34 @@
+@(title: String, tracks: Seq[Track])
+
+@trackArtists(track: Track) = { @track.artists.map(_.name).mkString(" & ") }
+
+@main(title) {
+<section id="content">
+    <div class="wrapper">
+        <article>
+            <h1>@title</h1>
+
+            @tracks.zipWithIndex.map{ case (track, index) =>
+
+            <div class="parent-space">
+                <h2 class="left">@(index + 1)</h2>
+                <h2 class="center"></h2>
+                <h2 class="right">@track.name</h2>
+            </div>
+
+            <div>
+                @if(track.album.images.isEmpty){
+                    <p></p>
+                } else {
+                    <img class="album-image" src="@(track.album.images.maxBy(_.width).url)">
+                }
+                <span class="track-artist">@trackArtists(track)</span>
+            </div>
+
+            <br>
+
+            }
+        </article>
+    </div>
+</section>
+}

@@ -1,41 +1,38 @@
 package controllers
 
-import javax.inject._
-import play.api._
+import akka.Done
+import models._
+import play.api.cache.AsyncCacheApi
+import play.api.libs.ws.WSClient
 import play.api.mvc._
+import utils.ActionWithAccessToken
+import utils.ApiMethods._
+import utils.CacheMethods.{cacheRecommendedTracks, cacheTopTracks, getCache}
+import utils.StringConstants.topTracksCacheKey
 
-/**
- * This controller creates an `Action` to handle HTTP requests to the
- * application's home page.
- */
-@Singleton
-class HomeController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+import javax.inject._
 
-  /**
-   * Create an Action to render an HTML page.
-   *
-   * The configuration in the `routes` file means that this method
-   * will be called when the application receives a `GET` request with
-   * a path of `/`.
-   */
-  def index() = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.index())
-  }
-  
-  def explore() = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.explore())
-  }
-  
-  def tutorial() = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.tutorial())
-  }
+class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controllerComponents: ControllerComponents)
+    extends BaseController {
 
-  def hello(name: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.hello(name))
-  }
+  implicit val implicitCache: AsyncCacheApi             = cache
+  implicit val implicitWs: WSClient                     = ws
+  implicit val implicitComponents: ControllerComponents = controllerComponents
 
-  def d3Test(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.d3())
-  }
+  def home(): Action[AnyContent] =
+    ActionWithAccessToken { implicit accessToken =>
+      val cacheTopTracksResult: Either[SpotifyError, Done] = cacheTopTracks
+
+      val topTracks: Either[SpotifyError, TrackList] =
+        cacheTopTracksResult.flatMap(_ => getCache[TrackList](topTracksCacheKey))
+
+      val cacheRecommendedTracksResult: Either[SpotifyError, Done] = topTracks.flatMap(cacheRecommendedTracks(_))
+
+      cacheRecommendedTracksResult match {
+        case Left(SpotifyError(UNAUTHORIZED, _)) => redirectToAuthorize
+        case Left(error)                         => InternalServerError(error.message)
+        case Right(_)                            => Ok(views.html.home())
+      }
+    }
 
 }

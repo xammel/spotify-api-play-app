@@ -4,11 +4,16 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET     /                                   controllers.HomeController.index()
-GET     /explore                            controllers.HomeController.explore()
-GET     /tutorial                           controllers.HomeController.tutorial()
-GET     /hello                              controllers.HomeController.hello(name)
-GET     /d3                                 controllers.HomeController.d3Test()
+GET     /                                   controllers.HomeController.home()
+GET     /authorize                          controllers.AuthorizationController.authorize()
+GET     /authorization-callback             controllers.AuthorizationController.callback(code)
+GET     /artists                            controllers.ApiCallController.artists()
+GET     /tracks                             controllers.ApiCallController.tracks()
+GET     /recommendations                    controllers.ApiCallController.recommendations()
+GET     /refresh-recommendations            controllers.ApiCallController.refreshRecommendations()
+
++ nocsrf
+POST    /save                               controllers.ApiCallController.saveTrack(trackId)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

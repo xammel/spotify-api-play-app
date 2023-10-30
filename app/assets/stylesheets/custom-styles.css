@@ -1,0 +1,112 @@
+.button {
+  appearance: none;
+  background-color: #000000;
+  border: 2px solid #1A1A1A;
+  border-radius: 15px;
+  box-sizing: border-box;
+  color: #FFFFFF;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Roobert,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+  font-size: 16px;
+  font-weight: 600;
+  line-height: normal;
+  margin: 0;
+  min-height: 60px;
+  min-width: 0;
+  outline: none;
+  padding: 16px 24px;
+  text-align: center;
+  text-decoration: none;
+  transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  width: 100%;
+  will-change: transform;
+  transition-duration: 0.5s;
+}
+
+.button:disabled {
+  pointer-events: none;
+}
+
+.button:hover {
+  box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
+  transform: translateY(-2px);
+}
+
+.button:active {
+  box-shadow: none;
+  transform: translateY(0);
+}
+
+.save-track-button {
+    width: 50%;
+    height: 25%;
+    grid-column: 2;
+    position: relative;
+    left: 45%;
+    top: 30%
+}
+
+.parent-space {
+ display: grid;
+ grid-template-columns: 1fr 1fr 1fr;
+}
+
+.two-column-line-even {
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+}
+
+.two-column-line-uneven{
+ display: grid;
+ grid-template-columns: 70% 30%;
+}
+
+.left {
+ grid-column: 1;
+ text-align: left;
+ padding: 5px;
+}
+.center {
+ grid-column: 2;
+ text-align: center;
+ padding: 5px;
+}
+.right {
+ grid-column: 3;
+ text-align: right;
+ padding: 5px;
+}
+
+img.artist-profile {
+    height: 400px;
+    width: 400px;
+}
+
+img.album-image {
+    height: 200px;
+    width: 200px;
+    vertical-align: middle;
+}
+
+.image-wrapper{
+    display: flex;
+    justify-content: center;
+}
+
+.track-artist {
+    vertical-align:top;
+    float: right;
+    font-weight: bold;
+}
+
+.lighter-font {
+    font-weight: normal;
+}
+
+.embedded-player {
+    border-radius: 12px;
+}
