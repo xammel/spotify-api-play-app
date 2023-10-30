@@ -1,13 +1,10 @@
 package utils
 
-import models.{AccessToken, Recommendations, SpotifyError, TrackList}
+import models.{AccessToken, Error, Recommendations, TrackList}
 import play.api.cache.AsyncCacheApi
 import spechelpers.SpecHelpers
-import utils.ApiMethods.await
 import utils.CacheMethods._
 import utils.StringConstants._
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class CacheMethodsSpec extends SpecHelpers {
 
@@ -17,85 +14,54 @@ class CacheMethodsSpec extends SpecHelpers {
 
   "getCache" must {
     "return a Left error if the key is not defined in the cache" in {
-      val result = for {
-        _     <- cache.removeAll()
-        value <- getCache[Int](testKey)
-      } yield value
-
-      await(result) mustBe Left(SpotifyError(INTERNAL_SERVER_ERROR, getCacheErrorMessage(testKey)))
+      cache.removeAll()
+      getCache[Int](testKey) mustBe Left(Error(INTERNAL_SERVER_ERROR, getCacheErrorMessage(testKey)))
     }
 
     "return the Right value from the cache if the key does exist in the cache" in {
-      val result = for {
-        _   <- cache.removeAll()
-        _   <- cache.set(testKey, 2)
-        int <- getCache[Int](testKey)
-      } yield int
-
-      await(result) mustBe Right(2)
+      cache.removeAll()
+      cache.set(testKey, 2)
+      getCache[Int](testKey) mustBe Right(2)
     }
   }
 
   "cacheTopTracks" must {
     "insert the top tracks into the cache" in {
-      val result = for {
-        _      <- cache.removeAll()
-        _      <- cacheTopTracks(token, mockWS(), cache)
-        tracks <- getCache[TrackList](topTracksCacheKey)
-      } yield tracks
-
-      await(result) mustBe Right(trackList)
+      cache.removeAll()
+      cacheTopTracks(token, mockWS(), cache)
+      getCache[TrackList](topTracksCacheKey) mustBe Right(trackList)
     }
 
     "return the spotify error if that is returned from the API" in {
-
-      val result = for {
-        _      <- cache.removeAll()
-        tracks <- cacheTopTracks(token, mockWS(accessTokenIsExpired = true), cache)
-      } yield tracks
-
-      await(result) mustBe Left(
-        SpotifyError(unauthorizedSpotifyError.error.status, unauthorizedSpotifyError.error.message)
-      )
+      cache.removeAll()
+      val result = cacheTopTracks(token, mockWS(accessTokenIsExpired = true), cache)
+      result mustBe Left(Error(unauthorizedSpotifyError.error.status, unauthorizedSpotifyError.error.message))
     }
 
     "return a custom error if the error message cannot be decoded" in {
-      val result = for {
-        _      <- cache.removeAll()
-        tracks <- cacheTopTracks(token, mockWS(returnUnexpectedResponse = true), cache)
-      } yield tracks
-      await(result) mustBe Left(SpotifyError(INTERNAL_SERVER_ERROR, cacheTopTracksErrorMessage))
+      cache.removeAll()
+      val result = cacheTopTracks(token, mockWS(returnUnexpectedResponse = true), cache)
+      result mustBe Left(Error(INTERNAL_SERVER_ERROR, cacheTopTracksErrorMessage))
     }
   }
 
   "cacheRecommendedTracks" must {
     "insert the recommended tracks into the cache" in {
-      val result = for {
-        _               <- cache.removeAll()
-        _               <- cacheRecommendedTracks(trackList)(token, mockWS(), cache)
-        recommendations <- getCache[Recommendations](recommendedTracksCacheKey)
-      } yield recommendations
-
-      await(result) mustBe Right(recommendations)
+      cache.removeAll()
+      cacheRecommendedTracks(trackList)(token, mockWS(), cache)
+      getCache[Recommendations](recommendedTracksCacheKey) mustBe Right(recommendations)
     }
 
     "return the spotify error if that is returned from the API" in {
-      val result = for {
-        _      <- cache.removeAll()
-        tracks <- cacheRecommendedTracks(trackList)(token, mockWS(accessTokenIsExpired = true), cache)
-      } yield tracks
-
-      await(result) mustBe Left(
-        SpotifyError(unauthorizedSpotifyError.error.status, unauthorizedSpotifyError.error.message)
-      )
+      cache.removeAll()
+      val result = cacheRecommendedTracks(trackList)(token, mockWS(accessTokenIsExpired = true), cache)
+      result mustBe Left(Error(unauthorizedSpotifyError.error.status, unauthorizedSpotifyError.error.message))
     }
 
     "return a custom error if the error message cannot be decoded" in {
-      val result = for {
-        _      <- cache.removeAll()
-        tracks <- cacheRecommendedTracks(trackList)(token, mockWS(returnUnexpectedResponse = true), cache)
-      } yield tracks
-      await(result) mustBe Left(SpotifyError(INTERNAL_SERVER_ERROR, cacheRecommendedTracksErrorMessage))
+      cache.removeAll()
+      val result = cacheRecommendedTracks(trackList)(token, mockWS(returnUnexpectedResponse = true), cache)
+      result mustBe Left(Error(INTERNAL_SERVER_ERROR, cacheRecommendedTracksErrorMessage))
     }
   }
 

@@ -16,7 +16,7 @@ class JsonObjectsSpec extends SpecHelpers {
 
   "Error" must {
     "decode" in {
-      decode[SpotifyError](spotifyErrorJsonString) mustBe Right(SpotifyError(UNAUTHORIZED, testErrorMessage))
+      decode[Error](spotifyErrorJsonString) mustBe Right(Error(UNAUTHORIZED, testErrorMessage))
     }
   }
 }

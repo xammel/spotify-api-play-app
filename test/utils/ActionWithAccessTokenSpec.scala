@@ -6,13 +6,10 @@ import play.api.test._
 import spechelpers.SpecHelpers
 import utils.ApiMethods.await
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
 class ActionWithAccessTokenSpec extends SpecHelpers {
 
   implicit lazy val implicitComponents    = Helpers.stubControllerComponents()
-  lazy val testAction: Action[AnyContent] = ActionWithAccessToken { accessToken => Future(Ok(accessToken.accessToken)) }
+  lazy val testAction: Action[AnyContent] = ActionWithAccessToken { accessToken => Ok(accessToken.accessToken) }
 
   "ActionWithAccessToken" must {
     "redirect to authorize if the access token is not defined" in {

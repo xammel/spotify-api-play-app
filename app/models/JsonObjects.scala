@@ -16,13 +16,14 @@ object AccessToken extends JsonResponse[AccessToken] {
   }
 }
 
-case class SpotifyError(status: Int, message: String)
+//TODO consider renaming to eg. Spotify error to clarify Either[Error, Error] situations
+case class Error(status: Int, message: String)
 
-object SpotifyError extends JsonResponse[SpotifyError] {
-  implicit val decoder: Decoder[SpotifyError] = Decoder.instance { h =>
+object Error extends JsonResponse[Error] {
+  implicit val decoder: Decoder[Error] = Decoder.instance { h =>
     for {
       details <- h.get[ErrorDetails]("error")
-    } yield SpotifyError(status = details.status, message = details.message)
+    } yield Error(status = details.status, message = details.message)
   }
 }
 
