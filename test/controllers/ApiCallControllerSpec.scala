@@ -33,20 +33,20 @@ class ApiCallControllerSpec extends SpecHelpers {
 
   "getMyTopArtists" should {
     "redirect to authorize if the token is expired" in {
-      val result = executeAction(controller(accessTokenIsExpired = true).getMyTopArtists())
+      val result = executeAction(controller(accessTokenIsExpired = true).artists())
 
       result.header.status mustBe SEE_OTHER
       result.header.headers mustBe Map(LOCATION -> "/authorize")
     }
 
     "throw an InternalServerError if the response from the API is not able to be decoded" in {
-      val result = executeAction(controller(returnUnexpectedResponse = true).getMyTopArtists())
+      val result = executeAction(controller(returnUnexpectedResponse = true).artists())
 
       result.header.status mustBe INTERNAL_SERVER_ERROR
     }
 
     "redirect to top artists page if all is well" in {
-      val result: Result = executeAction(controller().getMyTopArtists())
+      val result: Result = executeAction(controller().artists())
 
       result.header.status mustBe OK
       getResultBody(result) must include("Your Top Artists")
@@ -55,28 +55,28 @@ class ApiCallControllerSpec extends SpecHelpers {
 
   "getMyTopTracks" should {
     "redirect to authorize if the token is expired" in {
-      val result = executeAction(controller(accessTokenIsExpired = true).getMyTopTracks())
+      val result = executeAction(controller(accessTokenIsExpired = true).tracks())
 
       result.header.status mustBe SEE_OTHER
       result.header.headers mustBe Map(LOCATION -> "/authorize")
     }
 
     "throw an InternalServerError if the spotify error can be decoded but is not an authorization error" in {
-      val result = executeAction(controller(returnNonAuthError = true).getMyTopTracks())
+      val result = executeAction(controller(returnNonAuthError = true).tracks())
 
       result.header.status mustBe INTERNAL_SERVER_ERROR
       getResultBody(result) mustEqual nonAuthSpotifyError.error.message
     }
 
     "throw an InternalServerError if the response from the API is not able to be decoded" in {
-      val result = executeAction(controller(returnUnexpectedResponse = true).getMyTopTracks())
+      val result = executeAction(controller(returnUnexpectedResponse = true).tracks())
 
       result.header.status mustBe INTERNAL_SERVER_ERROR
       getResultBody(result) mustEqual "Response couldn't be decoded as an error or artist details..."
     }
 
     "redirect to top tracks page if all is well" in {
-      val result: Result = executeAction(controller().getMyTopTracks())
+      val result: Result = executeAction(controller().tracks())
 
       result.header.status mustBe OK
       getResultBody(result) must include("Your Top Tracks")
@@ -91,7 +91,7 @@ class ApiCallControllerSpec extends SpecHelpers {
       mockCache.set(topTracksCacheKey, trackList)
       mockCache.set(recommendedTracksCacheKey, recommendations)
 
-      val result: Result = executeAction(controller(cacheOpt = Some(mockCache)).getRecommendedTracks())
+      val result: Result = executeAction(controller(cacheOpt = Some(mockCache)).recommendations())
 
       result.header.status mustBe OK
       getResultBody(result) must include("Recommendations")
@@ -101,7 +101,7 @@ class ApiCallControllerSpec extends SpecHelpers {
       mockCache.removeAll()
       mockCache.set(topTracksCacheKey, trackList)
 
-      val result: Result = executeAction(controller(cacheOpt = Some(mockCache)).getRecommendedTracks())
+      val result: Result = executeAction(controller(cacheOpt = Some(mockCache)).recommendations())
 
       result.header.status mustBe SEE_OTHER
       result.header.headers mustBe Map(LOCATION -> "/")
@@ -111,7 +111,7 @@ class ApiCallControllerSpec extends SpecHelpers {
       mockCache.removeAll()
       mockCache.set(recommendedTracksCacheKey, recommendations)
 
-      val result: Result = executeAction(controller(cacheOpt = Some(mockCache)).getRecommendedTracks())
+      val result: Result = executeAction(controller(cacheOpt = Some(mockCache)).recommendations())
 
       result.header.status mustBe SEE_OTHER
       result.header.headers mustBe Map(LOCATION -> "/")

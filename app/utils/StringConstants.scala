@@ -6,12 +6,11 @@ import utils.AuthorizationMethods.generateCodeChallenge
 
 object StringConstants {
 
-  // Client ID for Spotify API
+  // Client ID for Spotify API - Ok to be public - https://community.spotify.com/t5/Spotify-for-Developers/Do-i-have-to-keep-the-Client-ID-secret/td-p/5258016
   private val spotifyClientId = "84209618a4864d94a1dfefe1cbe5a309"
 
   // URL beginnings
   val https = "https:/"
-  val http  = "http:/"
 
   // Spotify URLs
   private val apiSpotify          = "api.spotify.com/v1"
@@ -39,12 +38,12 @@ object StringConstants {
   def apiTokenPayload(code: String, codeVerifier: String) = joinURLParameters(callbackParams(code, codeVerifier))
 
   // Local URLs
-  private val localhost             = "localhost:9000"
-  private val authorizationCallback = s"$http/$localhost/authorization-callback"
+  private val authorizationCallback = s"http://localhost:9000/authorization-callback"
 
   // Constants
-  val lengthOfCodeVerifier = 128
-  val sha256               = "SHA-256"
+  val lengthOfCodeVerifier  = 128
+  val sha256                = "SHA-256"
+  val numberOfTopTrackSeeds = 5
 
   // Cache keys
   val tokenKey                  = "token"

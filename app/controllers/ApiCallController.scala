@@ -1,8 +1,7 @@
 package controllers
 
-import io.circe
 import io.circe.parser._
-import models.{ArtistList, Error, Recommendations, TrackList}
+import models.{ArtistList, Recommendations, SpotifyError, TrackList}
 import play.api.cache._
 import play.api.libs.ws._
 import play.api.mvc._
@@ -10,10 +9,10 @@ import utils.ActionWithAccessToken
 import utils.ApiMethods._
 import utils.CacheMethods.{cacheRecommendedTracks, getCache}
 import utils.StringConstants._
+import utils.TypeAliases.CirceError
 
 import javax.inject.Inject
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class ApiCallController @Inject() (
     cache: AsyncCacheApi,
@@ -25,42 +24,43 @@ class ApiCallController @Inject() (
   implicit val implicitCache      = cache
   implicit val implicitComponents = controllerComponents
 
-  def getMyTopArtists(): Action[AnyContent] =
+  def artists(): Action[AnyContent] =
     ActionWithAccessToken { implicit accessToken =>
-      val myTopArtistsFuture: Future[WSResponse]             = hitApi(myTopArtistsEndpoint).get()
-      val myTopArtistsJson: String                           = await(myTopArtistsFuture).body
-      val error: Either[circe.Error, Error]                  = decode[Error](myTopArtistsJson)
-      val errorOrArtistList: Either[circe.Error, ArtistList] = decode[ArtistList](myTopArtistsJson)
+      val myTopArtistsFuture: Future[WSResponse]                = hitApi(myTopArtistsEndpoint).get()
+      val myTopArtistsJson: String                              = await(myTopArtistsFuture).body
+      val circeOrSpotifyError: Either[CirceError, SpotifyError] = decode[SpotifyError](myTopArtistsJson)
+      val errorOrArtistList: Either[CirceError, ArtistList]     = decode[ArtistList](myTopArtistsJson)
 
-      (error, errorOrArtistList) match {
-        case (Right(Error(UNAUTHORIZED, _)), _) => redirectToAuthorize
-        case (Right(error), _)                  => InternalServerError(error.message)
-        case (_, Right(artistList))             => Ok(views.html.artists("Your Top Artists", artistList.items))
-        case _                                  => InternalServerError("Response couldn't be decoded as an error or artist details...")
+      (circeOrSpotifyError, errorOrArtistList) match {
+        case (Right(SpotifyError(UNAUTHORIZED, _)), _) => redirectToAuthorize
+        case (Right(error), _)                         => InternalServerError(error.message)
+        case (_, Right(artistList))                    => Ok(views.html.artists("Your Top Artists", artistList.items))
+        case _                                         => InternalServerError("Response couldn't be decoded as an error or artist details...")
       }
     }
 
-  def getMyTopTracks(): Action[AnyContent] =
+  def tracks(): Action[AnyContent] =
     ActionWithAccessToken { implicit accessToken =>
-      val topTracksFuture: Future[WSResponse]              = hitApi(myTopTracksEndpointWithParams).get()
-      val topTracksJson: String                            = await(topTracksFuture).body
-      val error: Either[circe.Error, Error]                = decode[Error](topTracksJson)
-      val errorOrTrackList: Either[circe.Error, TrackList] = decode[TrackList](topTracksJson)
+      val topTracksFuture: Future[WSResponse]                   = hitApi(myTopTracksEndpointWithParams).get()
+      val topTracksJson: String                                 = await(topTracksFuture).body
+      val circeOrSpotifyError: Either[CirceError, SpotifyError] = decode[SpotifyError](topTracksJson)
+      val errorOrTrackList: Either[CirceError, TrackList]       = decode[TrackList](topTracksJson)
 
-      (error, errorOrTrackList) match {
-        case (Right(Error(UNAUTHORIZED, _)), _) => redirectToAuthorize
-        case (Right(error), _)                  => InternalServerError(error.message)
-        case (_, Right(trackList))              => Ok(views.html.tracks("Your Top Tracks", trackList.items))
-        case _                                  => InternalServerError("Response couldn't be decoded as an error or artist details...")
+      (circeOrSpotifyError, errorOrTrackList) match {
+        case (Right(SpotifyError(UNAUTHORIZED, _)), _) => redirectToAuthorize
+        case (Right(error), _)                         => InternalServerError(error.message)
+        case (_, Right(trackList))                     => Ok(views.html.tracks("Your Top Tracks", trackList.items))
+        case _                                         => InternalServerError("Response couldn't be decoded as an error or artist details...")
       }
     }
 
-  def getRecommendedTracks(): Action[AnyContent] =
+  def recommendations(): Action[AnyContent] =
     ActionWithAccessToken { _ =>
-      val topTracks: Either[Error, TrackList]               = getCache[TrackList](topTracksCacheKey)
-      val recommendedTracks: Either[Error, Recommendations] = getCache[Recommendations](recommendedTracksCacheKey)
+      val errorOrTrackList: Either[SpotifyError, TrackList] = getCache[TrackList](topTracksCacheKey)
+      val errorOrRecommendations: Either[SpotifyError, Recommendations] =
+        getCache[Recommendations](recommendedTracksCacheKey)
 
-      (topTracks, recommendedTracks) match {
+      (errorOrTrackList, errorOrRecommendations) match {
         case (Right(trackList), Right(recommendations)) =>
           val seedIds    = recommendations.seeds.map(_.id)
           val seedTracks = trackList.items.filter(track => seedIds.contains(track.id))
@@ -75,7 +75,7 @@ class ApiCallController @Inject() (
     ActionWithAccessToken { implicit accessToken =>
       val idsToSaveToLibrary = trackIdJson(trackId)
 
-     val myTracksFuture: Future[WSResponse] =  hitApi(myTracksEndpoint)
+      val myTracksFuture: Future[WSResponse] = hitApi(myTracksEndpoint)
         .addHttpHeaders(CONTENT_TYPE -> JSON)
         .put(idsToSaveToLibrary)
 
@@ -90,7 +90,7 @@ class ApiCallController @Inject() (
         case Left(error) => InternalServerError(error.message)
         case Right(tracks) =>
           cacheRecommendedTracks(tracks)
-          Redirect(routes.ApiCallController.getRecommendedTracks())
+          Redirect(routes.ApiCallController.recommendations())
       }
     }
 }

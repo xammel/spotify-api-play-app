@@ -12,13 +12,6 @@ import utils.StringConstants.topTracksCacheKey
 
 import javax.inject._
 
-//TODO can refactor the whole app to be written in a non-blocking way with Action.async and returning Future[Result]
-
-/**
-  * This controller creates an `Action` to handle HTTP requests to the
-  * application's home page.
-  */
-@Singleton
 class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controllerComponents: ControllerComponents)
     extends BaseController {
 
@@ -28,17 +21,17 @@ class HomeController @Inject() (cache: AsyncCacheApi, ws: WSClient, val controll
 
   def home(): Action[AnyContent] =
     ActionWithAccessToken { implicit accessToken =>
-      val cacheTopTracksResult: Either[Error, Done] = cacheTopTracks
+      val cacheTopTracksResult: Either[SpotifyError, Done] = cacheTopTracks
 
-      val topTracks: Either[Error, TrackList] =
+      val topTracks: Either[SpotifyError, TrackList] =
         cacheTopTracksResult.flatMap(_ => getCache[TrackList](topTracksCacheKey))
 
-      val cacheRecommendedTracksResult: Either[Error, Done] = topTracks.flatMap(cacheRecommendedTracks(_))
+      val cacheRecommendedTracksResult: Either[SpotifyError, Done] = topTracks.flatMap(cacheRecommendedTracks(_))
 
       cacheRecommendedTracksResult match {
-        case Left(Error(UNAUTHORIZED, _)) => redirectToAuthorize
-        case Left(error)                  => InternalServerError(error.message)
-        case Right(_)                     => Ok(views.html.home())
+        case Left(SpotifyError(UNAUTHORIZED, _)) => redirectToAuthorize
+        case Left(error)                         => InternalServerError(error.message)
+        case Right(_)                            => Ok(views.html.home())
       }
     }
 

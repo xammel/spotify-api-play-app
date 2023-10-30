@@ -1,13 +1,13 @@
 package controllers
 
-import io.circe
 import io.circe.parser._
 import models.AccessToken
 import play.api.libs.ws._
 import play.api.mvc._
-import utils.ApiMethods.{await, joinURLParameters}
+import utils.ApiMethods.await
 import utils.AuthorizationMethods._
 import utils.StringConstants._
+import utils.TypeAliases.CirceError
 
 import javax.inject.Inject
 import scala.concurrent.Future
@@ -29,8 +29,8 @@ class AuthorizationController @Inject() (
         .addHttpHeaders(CONTENT_TYPE -> FORM)
         .post(apiTokenPayload(code, codeVerifier))
 
-      val accessTokenJson: String                              = await(apiTokenFuture).body
-      val decodedAccessToken: Either[circe.Error, AccessToken] = decode[AccessToken](accessTokenJson)
+      val accessTokenJson: String                             = await(apiTokenFuture).body
+      val decodedAccessToken: Either[CirceError, AccessToken] = decode[AccessToken](accessTokenJson)
 
       decodedAccessToken match {
         case Left(circeError) => InternalServerError(circeError.getMessage)

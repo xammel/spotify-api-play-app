@@ -1,6 +1,6 @@
 package utils
 
-import models.{AccessToken, Error, Recommendations, TrackList}
+import models.{AccessToken, SpotifyError, Recommendations, TrackList}
 import play.api.cache.AsyncCacheApi
 import spechelpers.SpecHelpers
 import utils.CacheMethods._
@@ -15,7 +15,7 @@ class CacheMethodsSpec extends SpecHelpers {
   "getCache" must {
     "return a Left error if the key is not defined in the cache" in {
       cache.removeAll()
-      getCache[Int](testKey) mustBe Left(Error(INTERNAL_SERVER_ERROR, getCacheErrorMessage(testKey)))
+      getCache[Int](testKey) mustBe Left(SpotifyError(INTERNAL_SERVER_ERROR, getCacheErrorMessage(testKey)))
     }
 
     "return the Right value from the cache if the key does exist in the cache" in {
@@ -35,13 +35,13 @@ class CacheMethodsSpec extends SpecHelpers {
     "return the spotify error if that is returned from the API" in {
       cache.removeAll()
       val result = cacheTopTracks(token, mockWS(accessTokenIsExpired = true), cache)
-      result mustBe Left(Error(unauthorizedSpotifyError.error.status, unauthorizedSpotifyError.error.message))
+      result mustBe Left(SpotifyError(unauthorizedSpotifyError.error.status, unauthorizedSpotifyError.error.message))
     }
 
     "return a custom error if the error message cannot be decoded" in {
       cache.removeAll()
       val result = cacheTopTracks(token, mockWS(returnUnexpectedResponse = true), cache)
-      result mustBe Left(Error(INTERNAL_SERVER_ERROR, cacheTopTracksErrorMessage))
+      result mustBe Left(SpotifyError(INTERNAL_SERVER_ERROR, cacheTopTracksErrorMessage))
     }
   }
 
@@ -55,13 +55,13 @@ class CacheMethodsSpec extends SpecHelpers {
     "return the spotify error if that is returned from the API" in {
       cache.removeAll()
       val result = cacheRecommendedTracks(trackList)(token, mockWS(accessTokenIsExpired = true), cache)
-      result mustBe Left(Error(unauthorizedSpotifyError.error.status, unauthorizedSpotifyError.error.message))
+      result mustBe Left(SpotifyError(unauthorizedSpotifyError.error.status, unauthorizedSpotifyError.error.message))
     }
 
     "return a custom error if the error message cannot be decoded" in {
       cache.removeAll()
       val result = cacheRecommendedTracks(trackList)(token, mockWS(returnUnexpectedResponse = true), cache)
-      result mustBe Left(Error(INTERNAL_SERVER_ERROR, cacheRecommendedTracksErrorMessage))
+      result mustBe Left(SpotifyError(INTERNAL_SERVER_ERROR, cacheRecommendedTracksErrorMessage))
     }
   }
 

@@ -7,9 +7,9 @@
 GET     /                                   controllers.HomeController.home()
 GET     /authorize                          controllers.AuthorizationController.authorize()
 GET     /authorization-callback             controllers.AuthorizationController.callback(code)
-GET     /artists                            controllers.ApiCallController.getMyTopArtists()
-GET     /tracks                             controllers.ApiCallController.getMyTopTracks()
-GET     /recommendations                    controllers.ApiCallController.getRecommendedTracks()
+GET     /artists                            controllers.ApiCallController.artists()
+GET     /tracks                             controllers.ApiCallController.tracks()
+GET     /recommendations                    controllers.ApiCallController.recommendations()
 GET     /refresh-recommendations            controllers.ApiCallController.refreshRecommendations()
 
 + nocsrf
